@@ -9,18 +9,12 @@ const chalk = require('chalk');
  */
 
 const basePath = path.resolve(process.cwd(), '../../../');
-const configPath = path.resolve(basePath, './bbt.config.json');
+const configPath = path.resolve(basePath, './bbt.config.js');
 
 if (fs.existsSync(configPath)) {
   const pkg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  /**
-   * 随便拉个版本号
-   * 0.X.X开头的版本自己手动处理升级问题
-   *
-   * 默认为1.X.X版本 即为最开始的1.0.X版本做兼容
-   *
-   */
-  const currentVersion = pkg.__version || '1.0.0';
+
+  const currentVersion = pkg.__version;
 
   migrate(currentVersion, configPath, basePath);
 } else {

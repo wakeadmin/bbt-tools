@@ -99,7 +99,7 @@ wkbbt init
 
 | name     | shortName | type     | description  | default             | required |
 | -------- | --------- | -------- | ------------ | ------------------- | -------- |
-| --config | -c        | `string` | 配置文件地址 | `./bbt.config.json` | `true`   |
+| --config | -c        | `string` | 配置文件地址 | `./bbt.config.js` | `false`   |
 
 ```
 wkbbt collection -c ./config/bbt-config.json
@@ -112,7 +112,7 @@ wkbbt collection -c ./config/bbt-config.json
 
 | name     | shortName | type     | description  | default             | required |
 | -------- | --------- | -------- | ------------ | ------------------- | -------- |
-| --config | -c        | `string` | 配置文件地址 | `./bbt.config.json` | `true`   |
+| --config | -c        | `string` | 配置文件地址 | `./bbt.config.js` | `false`   |
 
 ```
 wkbbt build
@@ -139,7 +139,7 @@ wkbbt translate
 
 | name       | shortName | type       | description                                                                                 | default | required |
 | ---------- | --------- | ---------- | ------------------------------------------------------------------------------------------- | ------- | -------- |
-| --config   | -c        | `string[]` | 要更新的 bbt.config.json 文件路径。为空的话, 会遍历执行目录下的所有文件获取 bbt.config.json | `-`     | `false`  |
+| --config   | -c        | `string[]` | 要更新的 bbt.config.js 文件路径。为空的话, 会遍历执行目录下的所有文件获取 bbt.config.js | `-`     | `false`  |
 | --registry | -r        | `string`   | npm 源地址                                                                                  | `-`     | `false`  |
 
 ### config

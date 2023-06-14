@@ -7,7 +7,7 @@ function findConfigFiles(): string[] {
   return getFiles(
     process.cwd(),
     ['dist', 'node_modules'],
-    file => file.isFile() && file.name.endsWith('bbt.config.json')
+    file => file.isFile() && file.name.endsWith('bbt.config.js')
   ).map(file => file.name);
 }
 
