@@ -1,6 +1,5 @@
 module.exports = {
   langs: ['zh', 'en'],
-  resourcePath: './',
-  src: './src',
-  exclude: [],
+  test: '.*\\.tr$',
+  exclude: ['node_modules'],
 };

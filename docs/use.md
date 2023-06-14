@@ -18,19 +18,79 @@ wkbbt [command] <options>
 wkbbt init
 ```
 
-`bbt.config.json`
+```typescript
+  /**
+   *  支持的语言列表
+   */
+  langs: string[];
+  /**
+   * 生成的资源目录地址
+   * 
+   * 默认为 './'
+   */
+  resourcePath: string;
+  /**
+   * 文件匹配正则
+   */
+  test: string;
+  /**
+   *  在那个文件夹下收集语言信息
+   *
+   *  默认为 `./src`
+   */
+  src: string;
+  /**
+   * 忽略的文件夹 类型为正则表达式字符串
+   */
+  exclude: string[];
+  /**
+   * excel 的输出地址
+   *
+   * 默认为 `./bbt-lang/bbt.csv`
+   */
+  bbtExcelPath: string;
+  /**
+   * 对比规则
+   *
+   * 默认为 `relaxed`
+   *
+   * - strict  如果基准值不一致 那么修改其基准值 并清空其他值
+   * - relaxed 直接进行合并操作
+   */
+  diffMode: DiffModeEnum;
+  /**
+   * 输出文件的后缀
+   *
+   * 默认为 `tr`
+   */
+  outFileExtName: string;
+  /**
+   * 当前版本
+   */
+  __version: string;
 
-```json
-{
-  "langs": ["zh", "en", "jp"], // 支持的语言列表
-  "resourcePath": "./", // 生成的资源目录地址
-  "test": ".*\\.tr", // 文件匹配正则
-  "src": "../src", // 在那个文件夹下收集语言信息
-  "exclude": [], // 忽略的文件夹 类型为正则表达式字符串
-  "bbtExcelPath": "./bbt-lang.csv", // excel 的输出地址
-  "diffMode": "relaxed", // 对比规则 "strict" | "relaxed"
-  "outFileExtName": "tr" // 输出文件的后缀
-}
+  plugins?: {
+    /**
+     * 自定义文件解析器
+     *
+     * 在读取文件时 调用`parse`方法将文件内容转换为`JSON`对象
+     * 在写入文件时 调用`stringify`方法将`JSON`对象写入到文件中
+     */
+    parser?: FileParser;
+
+    /**
+     * 自定义翻译
+     * @param record - 需要翻译的数据源
+     * @param target - 翻译的目标语言
+     * @param sourceLanguage - 数据源原本的语言
+     * @returns Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
+     */
+    translator: (
+      record: Record<string, string>,
+      target: string,
+      sourceLanguage: string
+    ) => Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
+  };
 ```
 
 ### collection
