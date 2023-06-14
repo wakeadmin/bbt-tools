@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/heft/heft.schema.json",
+  "heftPlugins": [{ "plugin": "@rushstack/heft-jest-plugin" }],
+  "eventActions": [
+    {
+      "actionKind": "deleteGlobs",
+      "heftEvent": "clean",
+      "actionId": "defaultClean",
+      "globsToDelete": ["lib/*", "temp", ".heft/build-cache/jest-cache"]
+    },
+    {
+      "actionKind": "runScript",
+      "heftEvent": "post-build",
+      "actionId": "addVersion",
+      "scriptPath": "./scripts/addVersionToConfig.js"
+    },
+    {
+      "actionKind": "copyFiles",
+      "actionId": "copyFile",
+      "heftEvent": "pre-compile",
+      "copyOperations": [
+        {
+          "sourceFolder": "src/template",
+          "destinationFolders": ["lib/template"],
+          "fileExtensions": [".txt", ".json"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# http://editorconfig.org
+# 注意和 prettier-config-wk 保持一致
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+quote_type = single
+end_of_line = lf
+
+[*.md]
+trim_trailing_whitespace = false

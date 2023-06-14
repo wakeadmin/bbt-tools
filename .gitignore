@@ -1,0 +1,5 @@
+lib/
+/temp/
+.heft
+example copy
+node_modules

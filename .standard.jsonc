@@ -1,0 +1,36 @@
+{
+  // 里程碑，表示从这个提交开始实施代码检查. 主要用于远程验证，
+  // Gerrit 项目跳过
+  // 当 CI 程序无法获取到 push 的起始 commit 时，就会用 milestone 来计算变动,
+  // 如果没有提供 milestone 会进行全量检查
+  // 起始 milestone 可以调用 yarn wkstd update-milestone 进行更新
+  "milestone": "",
+
+  // 是否自动更新 milestone. 只有在当前 milestone 为空或等于 HEAD^ 时才会自动更新
+  // Gerrit 项目跳过
+  "milestoneAutoUpdate": false,
+
+  // 执行 Typescript 类型检查, 这个功能在 wkstd 1.12.0 开始支持
+  "typescriptEnable": false,
+
+  // 指定哪些文件将被格式化，默认会格式化所有 prettier 支持的文件类型
+  // 格式为 glob, 例如 "**/*.*(js|jsx)"、"!(*test).js"
+  // 详见 multimatch
+  "formatPatterns": [],
+  // 指定哪些文件将被 eslint 检查, 默认会检查所有 .ts, .tsx, .js, .jsx, .mjs, .vue
+  "scriptPatterns": [],
+  // 指定哪些文件将被 stylelint 检查, 默认会检查 stylelint 支持的所有文件类型 .css, .scss, .sass, .less, .stylus, .vue, .html、.js、.jsx、.ts、.tsx
+  "stylePatterns": []
+  // 是否启用 eslint fix，修复可以被修复的文件, 默认 eslint 的修复是开启的
+  // "eslintFixable": true,
+  // 是否启用 stylelint fix，修复可以被修复的文件, 默认 stylelint 的修复是关闭的
+  // "stylelintFixable": false,
+  // 扩展 eslint 参数, 详见 https://eslint.org/docs/developer-guide/nodejs-api#-new-eslintoptions
+  // "eslintArgs": {},
+  // 扩展 stylelint 参数, 详见 https://stylelint.io/user-guide/usage/options
+  // "stylelintArgs": {},
+  // 扩展 prettier 参数
+  // "prettierArgs": {},
+  // typescript 检查命令
+  // "typescriptCmd": "tsc --noEmit"
+}

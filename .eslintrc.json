@@ -1,0 +1,28 @@
+{
+  "extends": ["wkts"],
+  "plugins": [],
+  "globals": {},
+  "rules": {},
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "es2017": true,
+    "node": true
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {},
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "warnOnUnsupportedTypeScriptVersion": true,
+        "ecmaVersion": "es11",
+        "lib": ["esNext"],
+        "project": "./tsconfig.json"
+      }
+    }
+  ]
+}
