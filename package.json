@@ -5,6 +5,10 @@
   "bin": {
     "wkbbt": "./bin/wkbbt"
   },
+  "engines": {
+    "node": ">=14.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "files": [
     "lib/*",
     "bin/*",
