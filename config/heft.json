@@ -22,7 +22,7 @@
         {
           "sourceFolder": "src/template",
           "destinationFolders": ["lib/template"],
-          "fileExtensions": [".txt", ".json"]
+          "fileExtensions": [".txt", ".json", ".js"]
         }
       ]
     }

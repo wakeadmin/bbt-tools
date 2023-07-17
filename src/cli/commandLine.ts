@@ -1,5 +1,4 @@
 import { CommandLineParser } from '@rushstack/ts-command-line';
-import { JSONFileParser } from '../utils';
 import { BuildAction } from './buildAction';
 import { CollectionAction } from './collectionAction';
 import { InitAction } from './initAction';
@@ -11,7 +10,7 @@ import { SetGlobalConfigAction } from './setAction';
 export class BBTToolCommandLineParser extends CommandLineParser {
   constructor() {
     super({
-      toolFilename: 'wkbbt',
+      toolFilename: 'bbt',
       toolDescription: '国际化资源工具库',
     });
     this.populateActions();

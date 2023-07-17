@@ -1,9 +1,9 @@
 {
-  "name": "@wakeadmin/bbt-tools",
+  "name": "@wakeadmin/bbt",
   "version": "0.1.0",
   "description": "用来维护多语言信息的工具",
   "bin": {
-    "wkbbt": "./bin/wkbbt"
+    "bbt": "./bin/bbt"
   },
   "engines": {
     "node": ">=14.0.0",

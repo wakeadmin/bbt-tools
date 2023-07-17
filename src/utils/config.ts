@@ -93,7 +93,8 @@ const IS_LINUX = platform() === 'linux';
 
 const HOME = IS_LINUX ? process.env.HOME! : resolve(process.env.HOMEDRIVE || '', process.env.HOMEPATH || '');
 
-const CONFIG_PATH = resolve(HOME, './.bbt-tools/config.json');
+const CONFIG_PATH = resolve(HOME, './.bbt/config.json');
+
 function save(config: IBBTGlobalConfig) {
   fse.ensureFileSync(CONFIG_PATH);
   fse.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));

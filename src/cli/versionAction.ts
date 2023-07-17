@@ -21,7 +21,7 @@ export class VersionAction extends CommandLineAction {
     this.printLogo();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const packageInfo = readPackageJson(resolve(__dirname, '../../package.json'))!;
-    console.log(chalk.rgb(62, 18, 106)(`@wakeadmin/bbt-tools version: ${packageInfo.version}`));
+    console.log(chalk.rgb(62, 18, 106)(`@wakeadmin/bbt version: ${packageInfo.version}`));
   }
 
   private printLogo(): void {

@@ -169,7 +169,7 @@ export class TranslateAction extends BaseAction {
   private getTranslator(): ITranslator['translate'] {
     const customTranslator = this.config.plugins?.translator;
     if (customTranslator) {
-      return (textMap, target, sourceLanguage) => from(customTranslator(textMap, target, sourceLanguage));
+      return (textMap, target, sourceLanguage) => from(customTranslator(textMap, target, sourceLanguage!));
     }
     return this.createTranslationService(this.translationParameter.value as unknown as TranslatorListEnum)?.translate;
   }

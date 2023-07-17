@@ -82,7 +82,7 @@ export class UpdateAction extends BaseAction {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require(path.join(process.cwd(), './node_modules/@wakeadmin/bbt-tools/scripts/migration'));
+    const mod = require(path.join(process.cwd(), './node_modules/@wakeadmin/bbt/scripts/migration'));
     await mod.migrate(this.getCurrentVersion(), this.configPathParameter.value);
   }
 
@@ -93,7 +93,7 @@ export class UpdateAction extends BaseAction {
 
     const packageManager = await getPackageManager();
     const packageMeta = await fetchPackageMeta(
-      '@wakeadmin/bbt-tools',
+      '@wakeadmin/bbt',
       packageManager.name === 'yarn',
       this.registryParameter.value
     );
@@ -136,9 +136,9 @@ export class UpdateAction extends BaseAction {
 
     const dependencies = getProjectDependencies(path.resolve(process.cwd(), './package.json'));
 
-    this.currentVersion = dependencies.get('@wakeadmin/bbt-tools')?.version;
+    this.currentVersion = dependencies.get('@wakeadmin/bbt')?.version;
     if (!this.currentVersion) {
-      throw new Error(`该项目没有安装 @wakeadmin/bbt-tools`);
+      throw new Error(`该项目没有安装 @wakeadmin/bbt`);
     }
     return this.currentVersion;
   }
