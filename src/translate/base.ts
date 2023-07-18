@@ -10,15 +10,15 @@ export interface ITranslator {
    * @param sourceLanguage 数据原本的语言
    * @returns
    */
-  translate<T extends string>(
-    record: Record<string, string>,
-    target: T,
+  translate(
+    record: Record<string, string | string[]>,
+    target: string,
     sourceLanguage?: string
-  ): Observable<TranslatedList<T>>;
+  ): Observable<TranslatedList>;
 }
 
-export type TranslatedList<T extends string> = {
-  target: T[number];
+export type TranslatedList = {
+  target: string;
   translatedText: string;
   key: string;
 }[];
@@ -28,7 +28,7 @@ export abstract class TranslatorAdapter implements ITranslator {
     record: Record<string, string>,
     targets: T,
     sourceLanguage?: string
-  ): Observable<TranslatedList<T>>;
+  ): Observable<TranslatedList>;
 }
 
 /**
@@ -58,11 +58,11 @@ export class BaseTranslator implements ITranslator {
   /**
    * @virtual
    */
-  translate<T extends string>(
-    record: Record<string, string>,
-    targets: T,
+  translate(
+    record: Record<string, string | string[]>,
+    targets: string,
     sourceLanguage?: string
-  ): Observable<TranslatedList<T>> {
+  ): Observable<TranslatedList> {
     throw new Error('BaseTranslation 没有实现 translateText');
   }
 

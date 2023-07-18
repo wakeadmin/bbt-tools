@@ -35,7 +35,7 @@ export class DeepLTranslator extends BaseTranslator {
     record: Record<string, string>,
     target: T,
     sourceLanguage?: string
-  ): Observable<TranslatedList<T>> {
+  ): Observable<TranslatedList> {
     return from(Object.entries(record)).pipe(
       map(([key, value]) => {
         const str = this.replaceInterpolation(key, value);
@@ -78,7 +78,7 @@ export class DeepLTranslator extends BaseTranslator {
           }),
           filter(Boolean),
           map(({ translatedText }) => {
-            return translatedText.reduce<TranslatedList<T>>((list, text, i) => {
+            return translatedText.reduce<TranslatedList>((list, text, i) => {
               const key = keys[i];
               list.push({
                 target,

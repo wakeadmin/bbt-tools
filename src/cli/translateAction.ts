@@ -20,7 +20,13 @@ import { BaseAction } from './baseAction';
 const alternatives: TranslatorAlternatives[] = ['google', 'deepl'];
 
 export interface ITranslateTextSource {
-  [target: string]: Record<'sourceText' | 'target' | 'translatedText' | 'key' | 'sourceLanguage', string>[];
+  [target: string]: {
+    sourceText: string | string[];
+    target: string;
+    translatedText: string | string[];
+    key: string;
+    sourceLanguage: string;
+  }[];
 }
 export class TranslateAction extends BaseAction {
   private translationParameter!: CommandLineChoiceParameter;
@@ -139,7 +145,7 @@ export class TranslateAction extends BaseAction {
       concatMap(obj =>
         from(
           Object.values(obj).map(list => {
-            const textMap: Record<string, string> = {};
+            const textMap: Record<string, string | string[]> = {};
             for (const item of list) {
               textMap[item.key] = item.sourceText;
             }

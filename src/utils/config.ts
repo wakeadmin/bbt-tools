@@ -78,10 +78,10 @@ export interface IBBTProjectConfig {
      * @returns Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
      */
     translator: (
-      record: Record<string, string>,
+      record: Record<string, string | string[]>,
       target: string,
       sourceLanguage: string
-    ) => Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
+    ) => Observable<TranslatedList> | Promise<TranslatedList>;
   };
 }
 
