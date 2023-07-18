@@ -10,7 +10,7 @@ export class BBTToolCommandLineParser extends CommandLineParser {
   constructor() {
     super({
       toolFilename: 'bbt',
-      toolDescription: '国际化资源工具库',
+      toolDescription: '一个自动化的语言包管理和翻译工具',
     });
     this.populateActions();
   }
@@ -22,8 +22,8 @@ export class BBTToolCommandLineParser extends CommandLineParser {
   private populateActions(): void {
     this.addAction(new InitAction());
     this.addAction(new CollectionAction());
-    this.addAction(new BuildAction());
     this.addAction(new TranslateAction());
+    this.addAction(new BuildAction());
     this.addAction(new VersionAction());
     this.addAction(new SetGlobalConfigAction());
   }

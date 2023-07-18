@@ -35,8 +35,8 @@ export type LangRecord = Map<string, Record<string, Record<string, string>>>;
 export class BuildAction extends BaseAction {
   constructor() {
     super({
-      actionName: 'build',
-      summary: '构建语言资源',
+      actionName: 'write',
+      summary: '回写语言资源',
       documentation: '根据对应的 excel 文件, 生成语言包文件',
     });
   }

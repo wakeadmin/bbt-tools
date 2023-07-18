@@ -68,7 +68,7 @@ describe('build action', () => {
   test('还原tr', async () => {
     await createExcel();
     await sleep(200);
-    await parser.execute(['build', '-c', path.join(__dirname, './temp/config.js')]);
+    await parser.execute(['write', '-c', path.join(__dirname, './temp/config.js')]);
     await sleep(200);
     expect(getFileValue(path.join(outBasePath, './sss/zh.tr'))).toEqual(zhData);
     expect(getFileValue(path.join(outBasePath, './sss/en.tr'))).toEqual(enData);

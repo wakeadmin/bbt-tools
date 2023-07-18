@@ -25,12 +25,12 @@
 
 `bbt`的工作流程如下：
 
-1. 收集所有的翻译内容
+1. 收集所有的翻译内容 - (`npx bbt collection`)
 2. 将翻译内容导出到 Excel(excel 文件或者 CSV) 表格中
-3. 将 excel 表格发送给翻译人员, 或者程序员通过翻译工具翻译
+3. 将 excel 表格发送给翻译人员, 或者程序员通过翻译工具翻译 - (`npx bbt translate`)
 4. 翻译人员翻译或校准完成之后，将 excel 表格发送给开发人员
 5. 开发人员将 excel 表格导入到项目中
-6. 开发人员将 excel 表格回写到语言包中
+6. 开发人员将 excel 表格回写到语言包中 - (`npx bbt write`)
 
 <br>
 <br>
@@ -51,7 +51,7 @@ $ npx bbt [command] <options>
 
 ### 命令
 
-#### init
+#### bbt init
 
 初始化，将生成配置文件
 
@@ -74,13 +74,15 @@ module.exports = {
 
 下面详细介绍 bbt.config.js 支持的配置项
 
-```typescript
+```ts
+{
   /**
    * 支持的语言列表, 比如 zh, en, ja, en-US
    * 具体取决于开发者如何定义语言标识符
    * bbt 会按照这里定义的标识符进行语言包文件查找和生成
+   * 默认为 ['zh', 'en']
    */
-  langs: string[];
+  langs?: string[];
 
   /**
    * 生成的资源目录地址
@@ -91,8 +93,9 @@ module.exports = {
 
   /**
    * 语言包文件匹配正则表达式, 比如 '.*\\.tr$'
+   * 默认为 '.*\\.tr$'
    */
-  test: string;
+  test?: string;
 
   /**
    * 在那个文件夹下收集语言信息
@@ -102,10 +105,11 @@ module.exports = {
   src?: string;
 
   /**
-   * 忽略的文件夹
+   * 忽略收集的文件夹
    * 类型为正则表达式字符串
+   * 默认为 ['node_modules']
    */
-  exclude: string[];
+  exclude?: string[];
 
   /**
    * Excel 的输出地址
@@ -156,18 +160,22 @@ module.exports = {
       sourceLanguage: string
     ) => Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
   };
+}
 ```
 
 <br>
 <br>
 
-#### collection
+#### bbt collection
 
-收集所有的符合要求的文件
+收集所有的符合要求的语言包，并将信息提取到 `bbt.csv` 中，方便翻译人员进行翻译和校准。当然你也可以使用 `bbt translate` 自动翻译
 
 | name     | shortName | type     | description  | default           | required |
 | -------- | --------- | -------- | ------------ | ----------------- | -------- |
 | --config | -c        | `string` | 配置文件地址 | `./bbt.config.js` | `false`  |
+
+<br>
+<br>
 
 ```shell
 $ bbt collection -c ./config/bbt-config.json
@@ -177,33 +185,39 @@ $ bbt collection -c ./config/bbt-config.json
 <br>
 <br>
 
-### translate
-
-使用翻译 API 对`excel`文件进行翻译
-并生成一个新的`excel`文件
-
-| name         | shortName | type                  | description      | default    | required |
-| ------------ | --------- | --------------------- | ---------------- | ---------- | -------- |
-| --translator | -t        | `'google' \| 'deepl'` | 使用哪个翻译 API | `'google'` | `false`  |
-| --proxy      | -p        | `string`              | 代理地址         | `-`        | `false`  |
-| --global     | -g        | `boolean`             | 是否进行全局翻译 | `false`    | `false`  |
+### bbt translate
 
 ```shell
 $ npx bbt translate
 ```
 
-#### build
+使用翻译 API 对`excel`文件进行翻译
+并生成一个新的`excel`文件
 
-根据`excel`文件生成对应的资源文件
+| name         | shortName | type                  | description                                                            | default    | required |
+| ------------ | --------- | --------------------- | ---------------------------------------------------------------------- | ---------- | -------- |
+| --translator | -t        | `'google' \| 'deepl'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准 | `'google'` | `false`  |
+| --proxy      | -p        | `string`              | 代理地址                                                               | `-`        | `false`  |
+| --global     | -g        | `boolean`             | 是否进行全局翻译                                                       | `false`    | `false`  |
+
+<br>
+<br>
+<br>
+<br>
+
+#### bbt write
+
+```shell
+$ npx bbt write
+```
+
+将 `bbt.csv` 的翻译结果回填到对应的语言包中，如果对应的语言包不存在，则会自动创建
 
 | name     | shortName | type     | description  | default           | required |
 | -------- | --------- | -------- | ------------ | ----------------- | -------- |
 | --config | -c        | `string` | 配置文件地址 | `./bbt.config.js` | `false`  |
 
-```shell
-$ bbt build
-```
-
+<br>
 <br>
 <br>
 
@@ -328,7 +342,7 @@ module.exports = {
 - 如何知道指定 key 是否存在语言缺失的情况
 - 如何将原始文本提取出来交给翻译人员翻译
 
-  `bbt-tools`会收集指定目录下符合规则的所有文件，并根据文件名判断该文件是属于哪种语言环境下的内容（`xxx/zh.tr`即为`zh`下的内容）, 最后整理到一个`excel`文件里， 用户可以通过`excel`自带的筛选可以很直观的知道对应的缺失内容，以及，如果需要交给翻译人员翻译，那么也只需要将该表发送给对应的人员翻译即可，翻译完之后，可以通过`bbt-tools build`将`excel`的内容更新到对应的文件里
+  `bbt-tools`会收集指定目录下符合规则的所有文件，并根据文件名判断该文件是属于哪种语言环境下的内容（`xxx/zh.tr`即为`zh`下的内容）, 最后整理到一个`excel`文件里， 用户可以通过`excel`自带的筛选可以很直观的知道对应的缺失内容，以及，如果需要交给翻译人员翻译，那么也只需要将该表发送给对应的人员翻译即可，翻译完之后，可以通过`bbt-tools write`将`excel`的内容更新到对应的文件里
 
 - 语言环境的维护
 
