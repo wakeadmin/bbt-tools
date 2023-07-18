@@ -1,5 +1,5 @@
 import { CellValue, Row, Workbook, Worksheet } from 'exceljs';
-import * as fse from 'fs-extra';
+import fse from 'fs-extra';
 import { omit } from 'lodash';
 import { extname } from 'path';
 import { KeyTree, KeyTreeNode, KeyTreeNodeType } from './keyTree';
@@ -12,7 +12,7 @@ export const KEY_KEY = 'key';
 export interface IBBTValue {
   path: string;
   key: string;
-  [locale: string]: string;
+  [locale: string]: string | string[];
 }
 
 export class BBTExcel<T extends IBBTValue = any> {
@@ -56,7 +56,7 @@ export class BBTExcel<T extends IBBTValue = any> {
     this.ready = true;
   }
 
-  private initColumns(langSet: Set<string>) {
+  protected initColumns(langSet: Set<string>) {
     const columns = [
       {
         header: PATH_KEY,
@@ -104,9 +104,9 @@ export class BBTExcel<T extends IBBTValue = any> {
 
   private getRowValue(row: Row, key: string): string {
     const index = this.columnMap[key];
-    const value =  (row.values as any)[index] as CellValue;
-    if(typeof value === 'boolean'){
-       throw new Error(`value is Object -> rows: ${row.number}; key: ${key} `)
+    const value = (row.values as any)[index] as CellValue;
+    if (typeof value === 'boolean') {
+      throw new Error(`value is Object -> rows: ${row.number}; key: ${key} `);
     }
     return value as string;
   }
@@ -160,7 +160,7 @@ export class BBTExcel<T extends IBBTValue = any> {
     tree.visitor(node => {
       if (node.nodeType === KeyTreeNodeType.Leaf) {
         createIfNeed(node);
-        tree.add(node.getValue());
+        excel.addRow(node.getValue());
       }
     });
 
@@ -168,18 +168,26 @@ export class BBTExcel<T extends IBBTValue = any> {
   }
 }
 
+// @ts-expect-error
 export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
   async readFile(file: string) {
     if (this.ready) {
       throw new Error('BBTExcel has been initialized');
     }
+
     if (!fse.existsSync(file)) {
       throw new Error(`file (${file}) does not exist !`);
     }
+
     const workBook = new Workbook();
     this.workBook = workBook;
 
     this.workSheet = await workBook.csv.readFile(file);
+
+    const langSet = new Set(
+      (this.workSheet.getRow(1).values as string[]).filter(val => val !== PATH_KEY && val !== KEY_KEY)
+    );
+    this.initColumns(langSet);
 
     this.ready = true;
   }
@@ -195,7 +203,7 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
     await this.workBook.csv.write(stream);
   }
 
-  static fromTree<K extends IBBTValue>(tree: KeyTree<any>): BBTCsv<K> {
+  static fromTree<K extends IBBTValue>(tree: KeyTree<K>): BBTCsv<K> {
     const csv = new BBTCsv<K>();
 
     const createIfNeed = (node: KeyTreeNode<K>) => {
@@ -207,7 +215,7 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
     tree.visitor(node => {
       if (node.nodeType === KeyTreeNodeType.Leaf) {
         createIfNeed(node);
-        tree.add(node.getValue());
+        csv.addRow(node.getValue());
       }
     });
 
