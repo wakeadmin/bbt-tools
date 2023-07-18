@@ -39,7 +39,6 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
   private allowAddChild: boolean;
   private child: Map<string, KeyTreeNode<T>> = new Map();
   private value!: T;
-  fullKey!: string;
   private parentNode!: KeyTreeNode<T>;
   /**
    *
@@ -48,6 +47,11 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
    */
   constructor(public readonly key: string, private type: KeyTreeNodeType) {
     this.allowAddChild = type !== KeyTreeNodeType.Leaf;
+  }
+
+  get fullKey(): string {
+    const parentFullKey = this.parent?.fullKey;
+    return parentFullKey ? `${parentFullKey}.${this.key}` : this.key;
   }
 
   get nodeType() {
@@ -75,11 +79,17 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
   set parent(node: KeyTreeNode<T>) {
     if (node !== this.parentNode) {
       this.parentNode = node;
-      this.fullKey = this.parent?.fullKey ? `${this.parent.fullKey}.${this.key}` : this.key;
     }
   }
 
-  appendChild(key: string, node: KeyTreeNode<T>): void {
+  /**
+   * 设置指定key的节点
+   *
+   * **如果当前节点不存在 那么会抛出一个错误**
+   * @param key
+   * @param node
+   */
+  setChild(key: string, node: KeyTreeNode<T>): void {
     if (!this.allowAddChild) {
       throw new IllegalOperationOfAddChildError(this.type, key);
     }
@@ -88,6 +98,7 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
     }
 
     this.child.set(key, node);
+    node.parent = this;
   }
 
   getChild(key: string): KeyTreeNode<T> | null {
@@ -110,6 +121,14 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
     return this.child.has(key);
   }
 
+  /**
+   * 新增一个节点
+   *
+   * **如果当前节点存在 那么会抛出一个错误**
+   * @param key
+   * @param nodeOrType
+   * @returns
+   */
   addChild(key: string, nodeOrType: KeyTreeNode<T> | KeyTreeNodeType): KeyTreeNode<T> {
     if (!this.allowAddChild) {
       throw new IllegalOperationOfAddChildError(this.type, key);
@@ -169,6 +188,15 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
 
   clear() {
     this.child.clear();
+  }
+}
+
+export class KeyTreeRootNode extends KeyTreeNode<any> {
+  constructor() {
+    super('__S_ROOT__', KeyTreeNodeType.Root);
+  }
+  get fullKey(): string {
+    return '';
   }
 }
 
@@ -245,7 +273,7 @@ export class KeyTree<T extends {}> {
   }
 
   private createRootNode() {
-    return new KeyTreeNode<T>('__S_Root', KeyTreeNodeType.Root);
+    return new KeyTreeRootNode();
   }
 
   private safeAdd(key: string, type: KeyTreeNodeType = KeyTreeNodeType.Node): KeyTreeNode<T> {
@@ -270,7 +298,7 @@ export class KeyTree<T extends {}> {
     if (str.startsWith('.') || str.endsWith('.')) {
       throw new Error(`${key} 格式不正确，请确保是以'.'符号分割以及非空字符`);
     }
-    const [source, parentKey, childKey] = str.split(/([\w.]+)\.([\w@]+)$/);
+    const [source, parentKey, childKey] = str.split(/([\w-$_@.:?]+)\.([\w-$_@.:?]+)$/);
 
     if (source === str) {
       return {
