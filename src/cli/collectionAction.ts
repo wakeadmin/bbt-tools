@@ -1,21 +1,23 @@
-import { Dirent } from 'fs';
+import { Dirent, existsSync } from 'fs';
+import { mergeWith } from 'lodash';
 import ora from 'ora';
 import Path from 'path';
+
 import { filter, lastValueFrom, map, mergeMap, Observable, share } from 'rxjs';
 import {
-  FileParser,
-  getFilesAsync,
-  getRelative,
-  KeyTree,
-  KeyTreeNodeType,
-  readFileAsync,
   DiffModeEnum,
   DiffMutateFn,
   diffTree,
+  getFilesAsync,
+  getRelative,
+  KeyTree,
+  KeyTreeNode,
+  KeyTreeNodeType,
+  readFileAsync,
 } from '../utils';
+
 import { BBTCsv, IBBTValue } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
-import { mergeWith } from 'lodash';
 
 export class CollectionAction extends BaseAction {
   constructor() {
@@ -39,15 +41,21 @@ export class CollectionAction extends BaseAction {
     });
     try {
       spinner.start();
-      const [oldTree, newTree] = await Promise.all([
-        this.readExcel().then(excel => excel.toTree()),
-        this.createTreeForTranslateFile(),
-      ]);
 
-      spinner.text = '对比中';
+      const newTree = await this.createTreeForTranslateFile();
 
-      const mutateFn = this.createDiffer(this.config.diffMode);
-      const tree = diffTree(newTree, oldTree, mutateFn);
+      let tree: KeyTree<IBBTValue>;
+
+      if (this.needDiff()) {
+        spinner.text = '正在读取集合文件';
+
+        const oldTree = await this.readExcel().then(excel => excel.toTree());
+        spinner.text = '对比中';
+        const mutateFn = this.createDiffer(this.config.diffMode);
+        tree = diffTree(newTree, oldTree, mutateFn);
+      } else {
+        tree = newTree;
+      }
 
       const excel = BBTCsv.fromTree(tree);
       excel.save(this.config.bbtExcelPath);
@@ -56,6 +64,7 @@ export class CollectionAction extends BaseAction {
     } catch (err) {
       console.error(err);
       spinner.stop();
+
       throw err;
     }
   }
@@ -75,12 +84,38 @@ export class CollectionAction extends BaseAction {
     const langs = this.config.langs;
     const tree = new KeyTree<IBBTValue>();
 
-    const setNodeValue = (key: string, value: IBBTValue) => {
-      const node = tree.get(key);
-      if (node) {
-        node.assign(value);
+    const createNode = (value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) => {
+      const nodeType = typeof value === 'string' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
+      return parent.addChild(key, nodeType);
+    };
+
+    const setNodeValue = (
+      parent: KeyTreeNode<IBBTValue>,
+      obj: {
+        path: string;
+        key: string;
+        lang: string;
+        value: Record<string, any> | string | any[];
+      }
+    ) => {
+      const { key, path, lang, value } = obj;
+      let node = parent.getChild(key) || createNode(value, parent, key);
+
+      if (typeof value === 'string' || Array.isArray(value)) {
+        node.assign({
+          path,
+          [lang]: value,
+          key: node.fullKey,
+        });
       } else {
-        tree.add(key, KeyTreeNodeType.Leaf, true).setValue(value);
+        Object.entries(value).forEach(([childKey, childValue]) => {
+          setNodeValue(node, {
+            key: childKey,
+            value: childValue,
+            lang,
+            path,
+          });
+        });
       }
     };
 
@@ -103,12 +138,14 @@ export class CollectionAction extends BaseAction {
     source$.subscribe(({ fileName, content }) => {
       const { dir, name } = Path.parse(fileName);
       const path = getRelative(this.basePath, dir);
+
       if (langs.includes(name)) {
         for (const [key, value] of Object.entries(content)) {
-          setNodeValue(key, {
+          setNodeValue(tree.root, {
             path,
             key,
-            [name]: value,
+            lang: name,
+            value,
           });
         }
       }
@@ -147,5 +184,10 @@ export class CollectionAction extends BaseAction {
       default:
         throw new Error('无法找到对应的differ');
     }
+  }
+
+  private needDiff(): boolean {
+    const { bbtExcelPath } = this.config;
+    return existsSync(bbtExcelPath);
   }
 }
