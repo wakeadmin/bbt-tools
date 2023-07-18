@@ -212,7 +212,7 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
       }
     };
 
-    tree.visitor(node => {
+    tree.sortedVisitor(node => {
       if (node.nodeType === KeyTreeNodeType.Leaf) {
         createIfNeed(node);
         csv.addRow(node.getValue());

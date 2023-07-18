@@ -72,6 +72,10 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
     return [...this.child.values()];
   }
 
+  get entries() {
+    return [...this.child.entries()];
+  }
+
   get parent(): KeyTreeNode<T> {
     return this.parentNode;
   }
@@ -175,6 +179,14 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
     this.child.forEach(node => node.visitor(fn));
   }
 
+  sortedVisitor(fn: (node: KeyTreeNode<T>) => void): void {
+    fn(this);
+    if (this.isLeaf()) {
+      return;
+    }
+    this.children.sort((a, b) => (a > b ? 1 : -1)).forEach(child => child.sortedVisitor(fn));
+  }
+
   clone() {
     const node = new KeyTreeNode<T>(this.key, this.nodeType);
 
@@ -260,6 +272,14 @@ export class KeyTree<T extends {}> {
 
   visitor(fn: (node: KeyTreeNode<T>) => void): void {
     this.children.forEach(child => child.visitor(fn));
+  }
+
+  sortedVisitor(fn: (node: KeyTreeNode<T>) => void): void {
+    this.rootNode.children
+      .sort((a, b) => {
+        return a.key > b.key ? 1 : -1;
+      })
+      .forEach(child => child.sortedVisitor(fn));
   }
 
   clone() {
