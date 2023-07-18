@@ -32,7 +32,7 @@ import { BaseAction } from './baseAction';
  */
 export type LangRecord = Map<string, Record<string, Record<string, string>>>;
 
-export class BuildAction extends BaseAction {
+export class WriteAction extends BaseAction {
   constructor() {
     super({
       actionName: 'write',
@@ -111,19 +111,19 @@ export class BuildAction extends BaseAction {
         const fileName = path.join(baseName, output, `./${lang}.${extName}`);
 
         fse.ensureFileSync(fileName);
-        const obj = this.sortRecord(info[lang]);
+        const obj = this.createRecord(info[lang]);
         fse.writeFile(fileName, this.parser.stringify(obj));
       }
     }
   }
 
   /**
-   * 排序 并尝试将str转换成 Array
+   * 尝试将str转换成 Array
    * @param record
    * @returns
    */
-  private sortRecord(record: Record<string, string>): Record<string, any> {
-    const keys = Object.keys(record).sort((a, b) => (a > b ? 1 : -1));
+  private createRecord(record: Record<string, string>): Record<string, any> {
+    const keys = Object.keys(record);
     const sortedRecord: Record<string, any> = {};
     for (const key of keys) {
       setWith(sortedRecord, key, strToArray(record[key]), Object);
