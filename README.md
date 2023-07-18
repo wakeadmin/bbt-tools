@@ -59,39 +59,61 @@ $ npx bbt [command] <options>
 $ npx bbt init
 ```
 
+执行 init 命令之后, 会生成 `bbt.config.js` 配置文件。默认配置如下：
+
+```js
+module.exports = {
+  langs: ['zh', 'en'],
+  test: '.*\\.tr$',
+  exclude: ['node_modules'],
+};
+```
+
 <br>
+<br>
+
+下面详细介绍 bbt.config.js 支持的配置项
 
 ```typescript
   /**
-   *  支持的语言列表
+   * 支持的语言列表, 比如 zh, en, ja, en-US
+   * 具体取决于开发者如何定义语言标识符
+   * bbt 会按照这里定义的标识符进行语言包文件查找和生成
    */
   langs: string[];
+
   /**
    * 生成的资源目录地址
    *
    * 默认为 './'
    */
-  resourcePath: string;
+  resourcePath?: string;
+
   /**
-   * 文件匹配正则
+   * 语言包文件匹配正则表达式, 比如 '.*\\.tr$'
    */
   test: string;
+
   /**
-   *  在那个文件夹下收集语言信息
+   * 在那个文件夹下收集语言信息
    *
    *  默认为 `./src`
    */
-  src: string;
+  src?: string;
+
   /**
-   * 忽略的文件夹 类型为正则表达式字符串
+   * 忽略的文件夹
+   * 类型为正则表达式字符串
    */
   exclude: string[];
+
   /**
-   * excel 的输出地址
+   * Excel 的输出地址
    *
    * 默认为 `./bbt-lang/bbt.csv`
    */
-  bbtExcelPath: string;
+  bbtExcelPath?: string;
+
   /**
    * 对比规则
    *
@@ -100,14 +122,18 @@ $ npx bbt init
    * - strict  如果基准值不一致 那么修改其基准值 并清空其他值
    * - relaxed 直接进行合并操作
    */
-  diffMode: DiffModeEnum;
+  diffMode?: DiffModeEnum;
+
   /**
    * 输出文件的后缀
    *
    * 默认为 `tr`
    */
-  outFileExtName: string;
+  outFileExtName?: string;
 
+  /**
+   * 自定义插件，用于实现更复杂的场景
+   */
   plugins?: {
     /**
      * 自定义文件解析器

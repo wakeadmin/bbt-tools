@@ -1,9 +1,8 @@
-import chalk from 'chalk';
 import fse from 'fs-extra';
 import { platform } from 'os';
 import { resolve } from 'path';
 import { type Observable } from 'rxjs';
-import ts from 'typescript';
+
 import { ExistedFileError, NotFileError } from '../error';
 import { TranslatedList } from '../translate';
 import { DiffModeEnum } from './diffTree';
@@ -147,50 +146,4 @@ export function getProjectConfig(filePath: string): IBBTProjectConfig {
 export function getDefaultProjectConfig(): IBBTProjectConfig {
   // eslint-disable-next-line import/no-dynamic-require
   return require(PROJECT_DEFAULT_CONFIG);
-}
-
-function createTsSourceFile(file: string): ts.SourceFile {
-  const code = fse.readFileSync(file, 'utf-8');
-
-  return ts.createSourceFile('temp.ts', code, ts.ScriptTarget.ESNext);
-}
-
-function createInitializer(value: string | string[]): ts.Expression {
-  if (Array.isArray(value)) {
-    return ts.factory.createArrayLiteralExpression(value.map(str => ts.factory.createStringLiteral(str)));
-  }
-
-  return ts.factory.createStringLiteral(value);
-}
-
-export function updateProjectConfig(
-  filePath: string,
-  key: Exclude<keyof IBBTProjectConfig, 'plugins'>,
-  value: string
-): void {
-  const sourceFile = createTsSourceFile(filePath);
-  const transformationResult = ts.transform(sourceFile, [
-    (context: ts.TransformationContext) => rootNode => {
-      function visitor(node: ts.Node): ts.Node {
-        if (ts.isPropertyAssignment(node)) {
-          if (node.name.getText(sourceFile) === key) {
-            return context.factory.createPropertyAssignment(node.name, createInitializer(value));
-          }
-        }
-
-        return ts.visitEachChild(node, visitor, context);
-      }
-
-      return ts.visitNode(rootNode, visitor) as ts.SourceFile;
-    },
-  ]);
-
-  const transformedSourceFile = transformationResult.transformed[0];
-  const printer = ts.createPrinter();
-
-  const result = printer.printNode(ts.EmitHint.Unspecified, transformedSourceFile, sourceFile);
-
-  fse.writeFileSync(filePath, result);
-
-  console.log(chalk.rgb(2, 46, 86)(`更新文件 ${filePath}`));
 }
