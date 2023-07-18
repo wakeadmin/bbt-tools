@@ -1,11 +1,12 @@
-import { difference, intersection, pipe } from 'lodash/fp';
-import { assignKeys, filterRemoveKey, setToArray } from './fn';
+import { difference, intersection } from 'lodash/fp';
 import { KeyTree, KeyTreeNode } from './keyTree';
 
 export const enum DiffModeEnum {
   'Strict' = 'strict',
   'Relaxed' = 'relaxed',
 }
+
+const REMOVEFLAG = '@remove@';
 
 export type DiffMutateFn<T extends {}> = (oldValue: T, newValue: T) => T;
 
@@ -27,14 +28,12 @@ export function assignNode<T extends {}>(
     return newNode.clone();
   }
 
-  const newChildrenKeys = newNode.children.map(item => item.key);
-  const oldChildrenKeys = oldNode.children.map(item => item.key);
+  const newChildrenKeys = newNode.children.map(item => item.key).filter(key => !key.endsWith(REMOVEFLAG));
+  const oldChildrenKeys = oldNode.children.map(item => item.key).filter(key => !key.endsWith(REMOVEFLAG));
 
-  const keys = pipe(assignKeys, filterRemoveKey, setToArray)(oldChildrenKeys, newChildrenKeys);
+  const addKeys = difference(newChildrenKeys)(oldChildrenKeys);
 
-  const addKeys = difference(keys)(oldChildrenKeys);
-
-  const modifierKeys = intersection(keys)(oldChildrenKeys);
+  const modifierKeys = intersection(newChildrenKeys)(oldChildrenKeys);
 
   oldNode.mutate(oldValue => mutateFn(oldValue, newNode.getValue()));
 
@@ -43,7 +42,7 @@ export function assignNode<T extends {}>(
   });
 
   modifierKeys.forEach(key => {
-    oldNode.appendChild(key, assignNode(newNode.getChild(key)!, oldNode.getChild(key)!, mutateFn));
+    oldNode.setChild(key, assignNode(newNode.getChild(key)!, oldNode.getChild(key)!, mutateFn));
   });
 
   return oldNode;
