@@ -9,12 +9,6 @@
       "globsToDelete": ["lib/*", "temp", ".heft/build-cache/jest-cache"]
     },
     {
-      "actionKind": "runScript",
-      "heftEvent": "post-build",
-      "actionId": "addVersion",
-      "scriptPath": "./scripts/addVersionToConfig.js"
-    },
-    {
       "actionKind": "copyFiles",
       "actionId": "copyFile",
       "heftEvent": "pre-compile",

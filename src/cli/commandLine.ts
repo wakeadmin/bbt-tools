@@ -3,7 +3,6 @@ import { BuildAction } from './buildAction';
 import { CollectionAction } from './collectionAction';
 import { InitAction } from './initAction';
 import { TranslateAction } from './translateAction';
-import { UpdateAction } from './updateAction';
 import { VersionAction } from './versionAction';
 import { SetGlobalConfigAction } from './setAction';
 
@@ -26,7 +25,6 @@ export class BBTToolCommandLineParser extends CommandLineParser {
     this.addAction(new BuildAction());
     this.addAction(new TranslateAction());
     this.addAction(new VersionAction());
-    this.addAction(new UpdateAction());
     this.addAction(new SetGlobalConfigAction());
   }
 }

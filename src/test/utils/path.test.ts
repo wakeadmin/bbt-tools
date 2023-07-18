@@ -1,9 +1,6 @@
-import { parsePath, getRelative } from '../../utils';
-import * as path from 'path';
+import { parsePath, getRelative, normalizePath } from '../../utils';
 
-function n(_path: string): string {
-  return path.normalize(_path);
-}
+const n = normalizePath;
 
 describe('utils path', () => {
   test('parsePath', () => {

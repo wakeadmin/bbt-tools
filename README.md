@@ -107,10 +107,6 @@ $ npx bbt init
    * 默认为 `tr`
    */
   outFileExtName: string;
-  /**
-   * 当前版本
-   */
-  __version: string;
 
   plugins?: {
     /**

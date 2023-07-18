@@ -1,10 +1,14 @@
 import path from 'path';
 
 const sep = path.sep;
-const sepReg = sep === '\\' ? /\\/g : /\//g;
+const sepReg = /\\/g;
 export function parsePath(dirPath: string): string[] {
   const { dir } = path.parse(dirPath);
   return dir.split(sep);
+}
+
+export function normalizePath(from: string): string {
+  return path.normalize(from.replace(sepReg, '/'));
 }
 
 /**

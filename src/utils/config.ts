@@ -44,7 +44,6 @@ export interface IBBTProjectConfig {
    * 输出文件的后缀
    */
   outFileExtName: string;
-  __version: string;
 
   plugins?: {
     // /**
