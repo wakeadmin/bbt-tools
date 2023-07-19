@@ -1,9 +1,8 @@
 import fse from 'fs-extra';
-import { setWith } from 'lodash';
+import setWith from 'lodash/setWith';
 import ora from 'ora';
 import path from 'path';
-import { strToArray } from '../utils';
-import { IBBTValue } from '../utils/treeExcel';
+import { strToArray, IBBTValue } from '../utils';
 import { BaseAction } from './baseAction';
 
 /**
@@ -43,6 +42,24 @@ import { BaseAction } from './baseAction';
  */
 export type LangRecord = Map<string, Record<string, Record<string, any>>>;
 
+function setMapValue(map: LangRecord, value: IBBTValue) {
+  const { path: filePath, key, ...langs } = value;
+
+  if (map.has(filePath)) {
+    const obj = map.get(filePath)!;
+    for (const [lang, text] of Object.entries(langs)) {
+      setWith(obj, `${lang}.${key}`, text, Object);
+    }
+  } else {
+    map.set(
+      filePath,
+      Object.entries(langs).reduce<Record<string, any>>((record, [lang, text]) => {
+        setWith(record, `${lang}.${key}`, text, Object);
+        return record;
+      }, {})
+    );
+  }
+}
 export class WriteAction extends BaseAction {
   constructor() {
     super({
@@ -81,29 +98,9 @@ export class WriteAction extends BaseAction {
     const tree = excel.toTree();
     const map: LangRecord = new Map();
 
-    const setMapValue = (value: IBBTValue) => {
-      const { path: filePath, key, ...langs } = value;
-      if (map.has(filePath)) {
-        const obj = map.get(filePath)!;
-        for (const [lang, text] of Object.entries(langs)) {
-          setWith(obj, `${lang}.${key}`, text, Object);
-        }
-
-        return;
-      }
-
-      map.set(
-        filePath,
-        Object.entries(langs).reduce<Record<string, any>>((record, [lang, text]) => {
-          setWith(record, `${lang}.${key}`, text, Object);
-          return record;
-        }, {})
-      );
-    };
-
     tree.visitor(node => {
       if (node.isLeaf()) {
-        setMapValue(node.getValue());
+        setMapValue(map, node.getValue());
       }
     });
 

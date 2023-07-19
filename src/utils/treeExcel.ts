@@ -214,20 +214,23 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
   }
 }
 
-export async function getExcel(filePath: string): Promise<BBTExcel> {
+export function getExcelCtor(filePath: string): typeof BBTCsv<any> | typeof BBTExcel<any> {
   const ext = extname(filePath);
   switch (ext) {
     case '.xlsx': {
-      const excel = new BBTExcel();
-      await excel.readFile(filePath);
-      return excel;
+      return BBTExcel;
     }
     case '.csv': {
-      const csv = new BBTCsv();
-      await csv.readFile(filePath);
-      return csv;
+      return BBTCsv;
     }
     default:
       throw new Error(`读取Excel文件失败: 不支持的扩展名 -> ${ext};目前只支持 ".xlsx"、".csv"`);
   }
+}
+
+export async function getExcel(filePath: string): Promise<BBTExcel> {
+  const Ctor = getExcelCtor(filePath);
+  const instance = new Ctor();
+  await instance.readFile(filePath);
+  return instance;
 }

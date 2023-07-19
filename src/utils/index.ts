@@ -5,3 +5,4 @@ export * from './parser';
 export * from './keyTree';
 export * from './diffTree';
 export * from './treeExcel';
+export * from './config';

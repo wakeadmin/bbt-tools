@@ -1,6 +1,6 @@
 import { CommandLineAction, CommandLineStringParameter } from '@rushstack/ts-command-line';
 import chalk from 'chalk';
-import { getGlobalConfig, setGlobalConfig } from '../utils/config';
+import { getGlobalConfig, setGlobalConfig } from '../utils';
 
 export class SetGlobalConfigAction extends CommandLineAction {
   private setParameter!: CommandLineStringParameter;

@@ -1,5 +1,5 @@
 import { Dirent, existsSync } from 'fs';
-import { mergeWith } from 'lodash';
+import mergeWith from 'lodash/mergeWith';
 import ora from 'ora';
 import Path from 'path';
 
@@ -16,8 +16,43 @@ import {
   readFileAsync,
 } from '../utils';
 
-import { BBTCsv, IBBTValue } from '../utils/treeExcel';
+import { getExcelCtor, IBBTValue } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
+
+function createNode(value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) {
+  const nodeType = typeof value === 'string' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
+  return parent.addChild(key, nodeType);
+}
+
+function setNodeValue(
+  parent: KeyTreeNode<IBBTValue>,
+  obj: {
+    path: string;
+    key: string;
+    lang: string;
+    value: Record<string, any> | string | any[];
+  }
+) {
+  const { key, path, lang, value } = obj;
+  let node = parent.getChild(key) || createNode(value, parent, key);
+
+  if (typeof value === 'string' || Array.isArray(value)) {
+    node.assign({
+      path,
+      [lang]: value,
+      key: node.fullKey,
+    });
+  } else {
+    Object.entries(value).forEach(([childKey, childValue]) => {
+      setNodeValue(node, {
+        key: childKey,
+        value: childValue,
+        lang,
+        path,
+      });
+    });
+  }
+}
 
 export class CollectionAction extends BaseAction {
   constructor() {
@@ -57,7 +92,7 @@ export class CollectionAction extends BaseAction {
         tree = newTree;
       }
 
-      const excel = BBTCsv.fromTree(tree, this.config.langs);
+      const excel = getExcelCtor(this.config.bbtExcelPath).fromTree(tree, this.config.langs);
       excel.save(this.config.bbtExcelPath);
 
       spinner.succeed('success');
@@ -83,41 +118,6 @@ export class CollectionAction extends BaseAction {
   protected async createTreeForTranslateFile(): Promise<KeyTree<IBBTValue>> {
     const langs = this.config.langs;
     const tree = new KeyTree<IBBTValue>();
-
-    const createNode = (value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) => {
-      const nodeType = typeof value === 'string' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
-      return parent.addChild(key, nodeType);
-    };
-
-    const setNodeValue = (
-      parent: KeyTreeNode<IBBTValue>,
-      obj: {
-        path: string;
-        key: string;
-        lang: string;
-        value: Record<string, any> | string | any[];
-      }
-    ) => {
-      const { key, path, lang, value } = obj;
-      let node = parent.getChild(key) || createNode(value, parent, key);
-
-      if (typeof value === 'string' || Array.isArray(value)) {
-        node.assign({
-          path,
-          [lang]: value,
-          key: node.fullKey,
-        });
-      } else {
-        Object.entries(value).forEach(([childKey, childValue]) => {
-          setNodeValue(node, {
-            key: childKey,
-            value: childValue,
-            lang,
-            path,
-          });
-        });
-      }
-    };
 
     const source$ = this.collectionLangFile().pipe(
       mergeMap(
