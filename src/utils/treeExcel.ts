@@ -39,7 +39,7 @@ export class BBTExcel<T extends IBBTValue = any> {
     this.ready = true;
   }
 
-  async create(langs: string[]) {
+  create(langs: string[]) {
     if (this.ready) {
       throw new Error('BBTExcel has been initialized');
     }
@@ -148,18 +148,13 @@ export class BBTExcel<T extends IBBTValue = any> {
     this.workSheet.addRow(value);
   }
 
-  static fromTree<K extends IBBTValue>(tree: KeyTree<any>): BBTExcel<K> {
+  static fromTree<K extends IBBTValue>(tree: KeyTree<any>, langs: string[]): BBTExcel<K> {
     const excel = new BBTExcel<K>();
 
-    const createIfNeed = (node: KeyTreeNode<K>) => {
-      if (!excel.ready) {
-        excel.create(Object.keys(omit(node.getValue(), [PATH_KEY, KEY_KEY])));
-      }
-    };
+    excel.create(langs);
 
     tree.visitor(node => {
       if (node.nodeType === KeyTreeNodeType.Leaf) {
-        createIfNeed(node);
         excel.addRow(node.getValue());
       }
     });
@@ -187,6 +182,7 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
     const langSet = new Set(
       (this.workSheet.getRow(1).values as string[]).filter(val => val !== PATH_KEY && val !== KEY_KEY)
     );
+
     this.initColumns(langSet);
 
     this.ready = true;
@@ -203,18 +199,13 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
     await this.workBook.csv.write(stream);
   }
 
-  static fromTree<K extends IBBTValue>(tree: KeyTree<K>): BBTCsv<K> {
+  static fromTree<K extends IBBTValue>(tree: KeyTree<K>, langs: string[]): BBTCsv<K> {
     const csv = new BBTCsv<K>();
 
-    const createIfNeed = (node: KeyTreeNode<K>) => {
-      if (!csv.ready) {
-        csv.create(Object.keys(omit(node.getValue(), [PATH_KEY, KEY_KEY])));
-      }
-    };
+    csv.create(langs);
 
     tree.sortedVisitor(node => {
       if (node.nodeType === KeyTreeNodeType.Leaf) {
-        createIfNeed(node);
         csv.addRow(node.getValue());
       }
     });

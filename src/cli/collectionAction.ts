@@ -57,7 +57,7 @@ export class CollectionAction extends BaseAction {
         tree = newTree;
       }
 
-      const excel = BBTCsv.fromTree(tree);
+      const excel = BBTCsv.fromTree(tree, this.config.langs);
       excel.save(this.config.bbtExcelPath);
 
       spinner.succeed('success');
