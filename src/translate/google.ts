@@ -77,17 +77,12 @@ export class GoogleTranslator extends BaseTranslator {
             return of(null);
           }),
           filter(Boolean),
-          map(({ translatedText }) => {
-            return translatedText.reduce<TranslatedList>((list, text, i) => {
+          map(({ translatedText }) =>
+            translatedText.map((text, i) => {
               const key = keys[i];
-              list.push({
-                target,
-                translatedText: this.reductionInterpolation(key, text),
-                key,
-              });
-              return list;
-            }, []);
-          })
+              return { target, translatedText: this.reductionInterpolation(key, text), key };
+            })
+          )
         );
       }, this.concurrent)
     );

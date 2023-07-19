@@ -6,6 +6,8 @@ import {
 import ora from 'ora';
 import { concatMap, from, lastValueFrom, share } from 'rxjs';
 import {
+  ChatGPTModel,
+  ChatGPTTranslator,
   DeepLTranslator,
   GoogleTranslator,
   ITranslator,
@@ -14,10 +16,10 @@ import {
 } from '../translate';
 import { KeyTree } from '../utils';
 import { getGlobalConfig } from '../utils/config';
-import { IBBTValue } from '../utils/treeExcel';
+import { IBBTValue, getExcelCtor } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
 
-const alternatives: TranslatorAlternatives[] = ['google', 'deepl'];
+const alternatives: TranslatorAlternatives[] = ['google', 'deepl', 'chatgpt'];
 
 export interface ITranslateTextSource {
   [target: string]: {
@@ -31,7 +33,9 @@ export interface ITranslateTextSource {
 export class TranslateAction extends BaseAction {
   private translationParameter!: CommandLineChoiceParameter;
   private proxyParameter!: CommandLineStringParameter;
+  private apiKeyParameter!: CommandLineStringParameter;
   private globalTranslateParameter!: CommandLineFlagParameter;
+  private chatGPTModelParameter!: CommandLineChoiceParameter;
   constructor() {
     super({
       actionName: 'translate',
@@ -60,6 +64,19 @@ export class TranslateAction extends BaseAction {
       parameterShortName: '-g',
       description: '是否执行全局翻译',
     });
+
+    this.chatGPTModelParameter = this.defineChoiceParameter({
+      parameterLongName: '--gm',
+      alternatives: [ChatGPTModel['gpt3.5'], ChatGPTModel.gpt4],
+      description: '使用的chatgpt model',
+    });
+
+    this.apiKeyParameter = this.defineStringParameter({
+      parameterLongName: '--api-key',
+      parameterShortName: '-k',
+      description: '翻译服务的API Key',
+      argumentName: 'KEY',
+    });
   }
 
   protected async onExecute(): Promise<void> {
@@ -72,9 +89,13 @@ export class TranslateAction extends BaseAction {
     try {
       spinner.start();
 
-      spinner.text = '正在进行翻译 - 0%';
+      const tree = (await this.readExcel()).toTree();
 
-      await this.translate(spinner);
+      await this.translate(spinner, tree);
+
+      const output = getExcelCtor(this.config.bbtExcelPath).fromTree(tree, this.config.langs);
+
+      output.save(this.config.bbtExcelPath);
 
       spinner.succeed('success');
     } catch (err) {
@@ -127,11 +148,8 @@ export class TranslateAction extends BaseAction {
     return filteredRecord;
   }
 
-  private async translate(spinner: ora.Ora): Promise<void> {
-    const translate = this.getTranslator();
-
-    const excel = await this.readExcel();
-    const tree = excel.toTree();
+  private async translate(spinner: ora.Ora, tree: KeyTree<IBBTValue>): Promise<void> {
+    const translateFunction = this.getTranslateFunction();
 
     const textSource = this.getTranslateTexts(tree);
     const length = Object.values(textSource).reduce((acc, list) => (acc += list.length), 0);
@@ -140,6 +158,8 @@ export class TranslateAction extends BaseAction {
     }
 
     let i = 0;
+
+    spinner.text = '正在进行翻译 - 0%';
 
     const translateText$ = from([textSource]).pipe(
       concatMap(obj =>
@@ -157,7 +177,7 @@ export class TranslateAction extends BaseAction {
           })
         )
       ),
-      concatMap(({ target, textMap, sourceLanguage }) => translate(textMap, target, sourceLanguage)),
+      concatMap(({ target, textMap, sourceLanguage }) => translateFunction(textMap, target, sourceLanguage)),
       share()
     );
 
@@ -172,20 +192,29 @@ export class TranslateAction extends BaseAction {
     await lastValueFrom(translateText$, { defaultValue: 0 });
   }
 
-  private getTranslator(): ITranslator['translate'] {
+  private getTranslateFunction(): ITranslator['translate'] {
     const customTranslator = this.config.plugins?.translator;
     if (customTranslator) {
       return (textMap, target, sourceLanguage) => from(customTranslator(textMap, target, sourceLanguage!));
     }
-    return this.createTranslationService(this.translationParameter.value as unknown as TranslatorListEnum)?.translate;
+    const provider = this.createTranslationService(this.translationParameter.value as unknown as TranslatorListEnum);
+
+    if (provider instanceof ChatGPTTranslator && this.chatGPTModelParameter.value) {
+      provider.useModel(this.chatGPTModelParameter.value as any);
+    }
+
+    return provider.translate.bind(provider);
   }
 
   private createTranslationService(provider: TranslatorAlternatives): ITranslator {
+    const key = this.apiKeyParameter.value;
     switch (provider) {
       case TranslatorListEnum.Google:
-        return new GoogleTranslator(getGlobalConfig('GoogleKey'), this.proxyParameter.value);
+        return new GoogleTranslator(key || getGlobalConfig('GoogleKey'), this.proxyParameter.value);
       case TranslatorListEnum.DeepL:
-        return new DeepLTranslator(getGlobalConfig('DeepLKey'), this.proxyParameter.value);
+        return new DeepLTranslator(key || getGlobalConfig('DeepLKey'), this.proxyParameter.value);
+      case TranslatorListEnum.ChatGPT:
+        return new ChatGPTTranslator(key || getGlobalConfig('ChatGPTKey'), this.proxyParameter.value);
       default:
         throw new Error('无法找到对应的翻译提供者');
     }

@@ -161,10 +161,13 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
     this.setValue(fn(this.value));
   }
 
+  /**
+   * 合并新的值到对象中
+   *
+   * 如果当前节点不可编辑的话 那么会直接结束运行
+   * @param value
+   */
   assign(value: Partial<T>): void {
-    if (this.allowAddChild) {
-      return;
-    }
     this.mutate(originValue => ({
       ...originValue,
       ...value,

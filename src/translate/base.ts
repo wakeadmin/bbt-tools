@@ -73,11 +73,12 @@ export class BaseTranslator implements ITranslator {
    * @public
    */
   protected replaceInterpolation(key: string, str: string): string {
+    if (!str) {
+      return '';
+    }
     const arr: string[] = [];
     let i = 0;
-    let result = str;
-
-    result = result.replace(this.replaceReg, replaceValue => {
+    const result = str.replace(this.replaceReg, replaceValue => {
       const val = `$$${i++}`;
       arr.push(replaceValue);
       return val;

@@ -108,6 +108,7 @@ function read(): IBBTGlobalConfig {
 export interface IBBTGlobalConfig {
   GoogleKey?: string;
   DeepLKey?: string;
+  ChatGPTKey?: string;
 }
 
 let cache: IBBTGlobalConfig;

@@ -1,8 +1,7 @@
 import { CellValue, Row, Workbook, Worksheet } from 'exceljs';
 import fse from 'fs-extra';
-import { omit } from 'lodash';
 import { extname } from 'path';
-import { KeyTree, KeyTreeNode, KeyTreeNodeType } from './keyTree';
+import { KeyTree, KeyTreeNodeType } from './keyTree';
 
 const SHEET_NAME = 'BBT';
 
@@ -149,7 +148,7 @@ export class BBTExcel<T extends IBBTValue = any> {
   }
 
   static fromTree<K extends IBBTValue>(tree: KeyTree<any>, langs: string[]): BBTExcel<K> {
-    const excel = new BBTExcel<K>();
+    const excel = new this<K>();
 
     excel.create(langs);
 
@@ -163,7 +162,6 @@ export class BBTExcel<T extends IBBTValue = any> {
   }
 }
 
-// @ts-expect-error
 export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
   async readFile(file: string) {
     if (this.ready) {
@@ -197,20 +195,6 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
      */
     stream.write(Buffer.from([0xef, 0xbb, 0xbf]));
     await this.workBook.csv.write(stream);
-  }
-
-  static fromTree<K extends IBBTValue>(tree: KeyTree<K>, langs: string[]): BBTCsv<K> {
-    const csv = new BBTCsv<K>();
-
-    csv.create(langs);
-
-    tree.sortedVisitor(node => {
-      if (node.nodeType === KeyTreeNodeType.Leaf) {
-        csv.addRow(node.getValue());
-      }
-    });
-
-    return csv;
   }
 }
 
