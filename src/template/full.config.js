@@ -5,5 +5,6 @@ module.exports = {
   src: './src',
   exclude: ['node_modules'],
   bbtExcelPath: './bbt-lang/bbt.csv',
-  outFileExtName: 'tr'
+  diffMode: 'relaxed',
+  outFileExtName: 'tr',
 };
