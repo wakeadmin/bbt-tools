@@ -3,7 +3,6 @@ import { setWith } from 'lodash';
 import ora from 'ora';
 import path from 'path';
 import { strToArray } from '../utils';
-import { FileParser } from '../utils/parser';
 import { IBBTValue } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
 
@@ -18,10 +17,22 @@ import { BaseAction } from './baseAction';
  * {
  *  "../view/aPage": {
  *    "zh":{
- *        "hello": "你好"
+ *        "hello": "你好",
+ *        "api": {
+ *          "name": "N",
+ *           "user": {
+ *              "info": "信息"
+ *            }
+ *        }
  *     },
  *    "en":{
- *        "hello": "hello"
+ *        "hello": "hello",
+ *        "api": {
+ *          "name": "N",
+ *           "user": {
+ *              "info": "info"
+ *            }
+ *        }
  *     }
  *
  *  }
@@ -30,7 +41,7 @@ import { BaseAction } from './baseAction';
  *
  * ```
  */
-export type LangRecord = Map<string, Record<string, Record<string, string>>>;
+export type LangRecord = Map<string, Record<string, Record<string, any>>>;
 
 export class WriteAction extends BaseAction {
   constructor() {
@@ -84,9 +95,7 @@ export class WriteAction extends BaseAction {
       map.set(
         filePath,
         Object.entries(langs).reduce<Record<string, any>>((record, [lang, text]) => {
-          record[lang] = {
-            [key]: text,
-          };
+          setWith(record, `${lang}.${key}`, text, Object);
           return record;
         }, {})
       );
@@ -122,12 +131,27 @@ export class WriteAction extends BaseAction {
    * @param record
    * @returns
    */
-  private createRecord(record: Record<string, string>): Record<string, any> {
-    const keys = Object.keys(record);
-    const sortedRecord: Record<string, any> = {};
-    for (const key of keys) {
-      setWith(sortedRecord, key, strToArray(record[key]), Object);
-    }
-    return sortedRecord;
+  private createRecord(record: Record<string, any>): Record<string, any> {
+    return this.deepSortRecord(record);
+  }
+
+  private deepSortRecord(
+    record: Record<string, any>,
+    compareFn: (a: any, b: any) => number = (a, b) => (a > b ? 1 : -1)
+  ): Record<string, any> {
+    return Object.keys(record)
+      .sort(compareFn)
+      .reduce<Record<string, any>>((obj, key) => {
+        const originalValue = record[key] ?? '';
+        const value =
+          typeof originalValue === 'string'
+            ? strToArray(originalValue)
+            : Array.isArray(originalValue)
+            ? originalValue
+            : this.deepSortRecord(originalValue);
+
+        obj[key] = value;
+        return obj;
+      }, {});
   }
 }
