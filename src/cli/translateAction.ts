@@ -6,6 +6,15 @@ import {
 import ora from 'ora';
 import { concatMap, from, lastValueFrom, share } from 'rxjs';
 import {
+  ENV_DEEPL_API_KEY,
+  ENV_DEEPL_BASE_URL,
+  ENV_GOOGLE_API_KEY,
+  ENV_GOOGLE_BASE_URL,
+  ENV_OPEN_AI_API_KEY,
+  ENV_OPEN_AI_BASE_URL,
+  ENV_PROXY,
+} from '../constanst/env';
+import {
   ChatGPTModel,
   ChatGPTTranslator,
   DeepLTranslator,
@@ -27,12 +36,10 @@ const API_KEY_ENV_NAME_MAP = new Map<
     baseUrl: string;
   }
 >([
-  ['chatgpt', { api: 'BBT_OPEN_AI_API_KEY', baseUrl: 'BBT_OPEN_AI_BASE_URL' }],
-  ['deepl', { api: 'BBT_DEEPL_API_KEY', baseUrl: 'BBT_DEEPL_BASE_URL' }],
-  ['google', { api: 'BBT_GOOGLE_API_KEY', baseUrl: 'BBT_GOOGLE_BASE_URL' }],
+  ['chatgpt', { api: ENV_OPEN_AI_API_KEY, baseUrl: ENV_OPEN_AI_BASE_URL }],
+  ['deepl', { api: ENV_DEEPL_API_KEY, baseUrl: ENV_DEEPL_BASE_URL }],
+  ['google', { api: ENV_GOOGLE_API_KEY, baseUrl: ENV_GOOGLE_BASE_URL }],
 ]);
-
-const PROXY_ENV_NAME = 'BBT_PROXY';
 
 export interface ITranslateTextSource {
   [target: string]: {
@@ -72,7 +79,7 @@ export class TranslateAction extends BaseAction {
     this.proxyParameter = this.defineStringParameter({
       parameterLongName: '--proxy',
       parameterShortName: '-p',
-      environmentVariable: PROXY_ENV_NAME,
+      environmentVariable: ENV_PROXY,
       description: '正向代理地址',
       argumentName: 'PROXY',
     });
@@ -86,6 +93,7 @@ export class TranslateAction extends BaseAction {
       parameterLongName: '--gm',
       alternatives: [ChatGPTModel['gpt3.5'], ChatGPTModel.gpt4],
       description: '使用的chatgpt model',
+      defaultValue: ChatGPTModel['gpt3.5'],
     });
 
     this.apiKeyParameter = this.defineStringParameter({
@@ -262,6 +270,6 @@ export class TranslateAction extends BaseAction {
         proxy: this.proxyParameter.value,
       };
     }
-    throw new Error(`缺少 API_KEY, 请传入 --key 参数或者通过设置环境变量 ${api}`);
+    throw new Error(`缺少 API_KEY, 请传入 --key 参数或者设置环境变量 ${api}`);
   }
 }

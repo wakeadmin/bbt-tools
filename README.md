@@ -19,7 +19,7 @@
 
 作为中文开发者，我们更习惯在中文环境下编程，并且也少有程序员能够掌握多门语言，尤其是比如日语、泰语、法语这类小语种。
 
-因此，我们的程序主要以中文为第一公民。但是，如果我们的程序需要支持多语言，那么我们就需要将中文的内容翻译成其他语言，这就是`bbt-tools`的初衷。
+因此，我们的程序主要以中文为第一公民。但是，如果我们的程序需要支持多语言，那么我们就需要将中文的内容翻译成其他语言，这就是`bbt`的初衷。
 
 <br>
 
@@ -192,18 +192,20 @@ $ npx bbt translate
 ```
 
 使用翻译 API 对`excel`文件进行翻译
-并生成一个新的`excel`文件
 
-| name         | shortName | type                  | description                                                            | default    | required |
-| ------------ | --------- | --------------------- | ---------------------------------------------------------------------- | ---------- | -------- |
-| --translator | -t        | `'google' \| 'deepl'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准 | `'google'` | `false`  |
-| --proxy      | -p        | `string`              | 代理地址                                                               | `-`        | `false`  |
-| --global     | -g        | `boolean`             | 是否进行全局翻译                                                       | `false`    | `false`  |
+| name         | shortName | type                               | description                                                             | default           | required |
+| ------------ | --------- | ---------------------------------- | ----------------------------------------------------------------------- | ----------------- | -------- |
+| --translator | -t        | `'google' \| 'deepl' \| 'chatgpt'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准  | `'google'`        | `false`  |
+| --proxy      | -p        | `string`                           | 正向代理地址 , 如果为空的话，会通过[环境变量进行获取](#环境变量)        | `-`               | `false`  |
+| --global     | -g        | `boolean`                          | 是否进行全局翻译, 默认情况下只会翻按需翻译                              | `false`           | `false`  |
+| --gm         | -         | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                     | `'gpt-3.5-turbo'` | `false`  |
+| --api-key    | -k        | `string`                           | 翻译服务的`API Key `, 如果为空的话，会通过[环境变量进行获取](#环境变量) | `-`               | `false`  |
+| --base-url   | -         | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)         | `-`               | `false`  |
 
-<br>
-<br>
-<br>
-<br>
+> <br>
+> <br>
+> <br>
+> <br>
 
 #### bbt write
 
@@ -220,6 +222,20 @@ $ npx bbt write
 <br>
 <br>
 <br>
+
+### 环境变量
+
+`bbt` 依赖于以下环境变量
+
+| name                 | description                              |
+| -------------------- | ---------------------------------------- |
+| BBT_OPEN_AI_API_KEY  | `chatGPT`(`openAI`)服务所依赖的`API Key` |
+| BBT_OPEN_AI_BASE_URL | `chatGPT`(`openAI`)服务的反向代理地址    |
+| BBT_DEEPL_API_KEY    | `DeepL`服务所依赖的`API Key`             |
+| BBT_DEEPL_BASE_URL   | `DeepL`服务的反向代理地址                |
+| BBT_GOOGLE_API_KEY   | `Google`服务所依赖的`API Key`            |
+| BBT_GOOGLE_BASE_URL  | `Google`服务的反向代理地址               |
+| BBT_PROXY            | 使用`translate`命令时的正向代理地址      |
 
 ## 高级
 
