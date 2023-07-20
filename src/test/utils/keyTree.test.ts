@@ -59,4 +59,27 @@ describe('keyTree 测试', () => {
     tree.add('Y2.YY1');
     expect(tree.has('Y2.YY1')).toBeTruthy();
   });
+
+  test('clone', () => {
+    tree
+      .add('K', KeyTreeNodeType.Node)
+      .addChild('KK', KeyTreeNodeType.Node)
+      .addChild('KKK', KeyTreeNodeType.Leaf)
+      .setValue({ value: 'S' });
+
+    const cloneTree = tree.clone();
+
+    const node = cloneTree.get('K.KK.KKK')!;
+    expect(node.fullKey).toBe('K.KK.KKK');
+    expect(node.key).toBe('KKK');
+
+    expect(node.getValue()).toEqual({
+      value: 'S',
+    });
+
+    tree.get('K.KK.KKK')!.setValue({ name: 'S' });
+
+    expect(node.getValue()).toEqual({ value: 'S' });
+    expect(tree.get('K.KK.KKK')!.getValue()).toEqual({ name: 'S' });
+  });
 });

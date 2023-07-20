@@ -152,10 +152,11 @@ export class TranslateAction extends BaseAction {
     tree.visitor(node => {
       if (node.isLeaf()) {
         const value = node.getValue();
+        const sourceText = value[sourceLanguage];
         for (const target of targetLanguages) {
           translateTexts[target].push({
             sourceLanguage,
-            sourceText: value[sourceLanguage],
+            sourceText,
             translatedText: value[target],
             target,
             key: value.key,
