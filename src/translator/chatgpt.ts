@@ -1,21 +1,8 @@
-import {
-  Observable,
-  map,
-  of,
-  from,
-  bufferCount,
-  concatMap,
-  delay,
-  mergeMap,
-  filter,
-  retry,
-  timer,
-  catchError,
-} from 'rxjs';
-import { teenyRequest } from 'teeny-request';
 import { error } from 'log-symbols';
-import { BaseTranslator, TranslatedList } from './base';
+import { Observable } from 'rxjs';
+import { teenyRequest } from 'teeny-request';
 import { URL } from 'url';
+import { BaseTranslator } from './base';
 
 export enum ChatGPTModel {
   'gpt4' = 'gpt-4',
@@ -30,6 +17,8 @@ export class ChatGPTTranslator extends BaseTranslator {
 
   private model: ChatGPTModel = ChatGPTModel['gpt3.5'];
 
+  name = 'ChatGPT';
+
   constructor(
     key: string,
     config: {
@@ -39,7 +28,7 @@ export class ChatGPTTranslator extends BaseTranslator {
   ) {
     super();
     if (!key) {
-      throw new Error(`${error} ChatGPT Translation Error: 缺少 API key`);
+      throw new Error(`${error} - ${this.name} Translation Error: 缺少 API key`);
     }
     this.key = key;
     this.proxy = config.proxy;
@@ -50,57 +39,8 @@ export class ChatGPTTranslator extends BaseTranslator {
     this.model = model;
   }
 
-  override translate<T extends string>(record: Record<string, string>, target: T): Observable<TranslatedList> {
-    return from(Object.entries(record)).pipe(
-      map(([key, value]) => {
-        const str = this.replaceInterpolation(key, value);
-        return [key, str];
-      }),
-      // 每次处理50个
-      bufferCount(50),
-      // 每次延迟200ms
-      concatMap(list => of(list).pipe(delay(this.delayTime))),
-      // 转换数据结构
-      map(list =>
-        list.reduce<{ keys: string[]; texts: string[] }>(
-          (obj, [key, text]) => {
-            obj.keys.push(key);
-            obj.texts.push(text);
-            return obj;
-          },
-          { keys: [], texts: [] }
-        )
-      ),
-      // 进行翻译
-      mergeMap(({ texts, keys }) => {
-        return this.createRequest(texts, target).pipe(
-          /**
-           * 失败之后进行重试
-           * 最多三次
-           * 指数性重试
-           */
-          retry({
-            count: 3,
-            delay: (_, retryCount) => timer(2 ** retryCount * this.delayTime),
-          }),
-          /**
-           * 三次都失败了话 写入日志
-           * 进行回退 直接返回一个null
-           */
-          catchError(err => {
-            this.writeErrorLog(`ChatGPT(${this.model}) Translation Error : ${err.message}`, target, texts, keys);
-            return of(null);
-          }),
-          filter(Boolean),
-          map(list =>
-            list.map((text, i) => {
-              const key = keys[i];
-              return { target, translatedText: this.reductionInterpolation(key, text), key };
-            })
-          )
-        );
-      }, this.concurrent)
-    );
+  translateTexts(texts: string[], target: string): Observable<string[]> {
+    return this.createRequest(texts, target);
   }
 
   private createRequest(texts: string[], target: string): Observable<string[]> {
@@ -110,7 +50,6 @@ export class ChatGPTTranslator extends BaseTranslator {
       teenyRequest(
         {
           uri: this.url,
-
           method: 'POST',
           body: JSON.stringify(body),
           headers: {

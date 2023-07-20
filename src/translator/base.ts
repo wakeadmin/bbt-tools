@@ -1,5 +1,18 @@
 import { createWriteStream, WriteStream } from 'fs-extra';
-import { Observable } from 'rxjs';
+import {
+  bufferCount,
+  catchError,
+  concatMap,
+  delay,
+  filter,
+  from,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  retry,
+  timer,
+} from 'rxjs';
 import path from 'path';
 
 export interface ITranslator {
@@ -48,7 +61,8 @@ const RegList = [
   /(?<!\\)\$t\((\w+\.)*?\w+\)/g /** $t(s.ss.c) */,
   /(?<!\\)<\s*[a-zA-Z0-9]+\s*>/g /** <0> 或者 <xxxx>  */,
 ];
-export class BaseTranslator extends TranslatorAdapter {
+
+export abstract class BaseTranslator extends TranslatorAdapter {
   protected concurrent = 6;
   protected delayTime = 332;
 
@@ -58,16 +72,62 @@ export class BaseTranslator extends TranslatorAdapter {
 
   private readonly reductionReg = /\$\$(\d+)/g;
   protected logStream?: WriteStream;
-  /**
-   * @virtual
-   */
-  translate(
-    record: Record<string, string | string[]>,
-    targets: string,
-    sourceLanguage?: string
-  ): Observable<TranslatedList> {
-    throw new Error('BaseTranslation 没有实现 translateText');
+
+  abstract get name(): string;
+
+  translate(record: Record<string, string>, target: string, sourceLanguage: string): Observable<TranslatedList> {
+    return from(Object.entries(record)).pipe(
+      map(([key, value]) => {
+        const str = this.replaceInterpolation(key, value);
+        return [key, str];
+      }),
+      // 每次处理50个
+      bufferCount(50),
+      concatMap(list => of(list).pipe(delay(this.delayTime))),
+      // 转换数据结构
+      map(list =>
+        list.reduce<{ keys: string[]; texts: string[] }>(
+          (obj, [key, text]) => {
+            obj.keys.push(key);
+            obj.texts.push(text);
+            return obj;
+          },
+          { keys: [], texts: [] }
+        )
+      ),
+      // 进行翻译
+      mergeMap(({ texts, keys }) => {
+        return this.translateTexts(texts, target, sourceLanguage).pipe(
+          /**
+           * 失败之后进行重试
+           * 最多三次
+           * 指数性重试
+           */
+          retry({
+            count: 3,
+            delay: (_, retryCount) => timer(2 ** retryCount * this.delayTime),
+          }),
+          /**
+           * 三次都失败了话 写入日志
+           * 进行回退 直接返回一个null
+           */
+          catchError(err => {
+            this.writeErrorLog(`${this.name} Translation Error : ${err.message}`, target, texts, keys);
+            return of(null);
+          }),
+          filter(Boolean),
+          map(list =>
+            list.map((text, i) => {
+              const key = keys[i];
+              return { target, translatedText: this.reductionInterpolation(key, text), key };
+            })
+          )
+        );
+      }, this.concurrent)
+    );
   }
+
+  abstract translateTexts(texts: string[], target: string, sourceLanguage: string): Observable<string[]>;
 
   /**
    * 替换文字里的插值表达式

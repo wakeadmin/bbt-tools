@@ -1,25 +1,13 @@
-import {
-  Observable,
-  map,
-  of,
-  from,
-  bufferCount,
-  concatMap,
-  delay,
-  mergeMap,
-  filter,
-  retry,
-  timer,
-  catchError,
-} from 'rxjs';
-import { teenyRequest } from 'teeny-request';
 import { error } from 'log-symbols';
-import { BaseTranslator, TranslatedList } from './base';
+import { Observable, map } from 'rxjs';
+import { teenyRequest } from 'teeny-request';
+import { BaseTranslator } from './base';
 
 export class GoogleTranslator extends BaseTranslator {
   private readonly key: string;
   readonly proxy?: string;
   private readonly url: string;
+  name = 'Google';
 
   constructor(
     key: string,
@@ -30,73 +18,17 @@ export class GoogleTranslator extends BaseTranslator {
   ) {
     super();
     if (!key) {
-      throw new Error(`${error} Google Translation Error: 缺少 API key`);
+      throw new Error(`${error} - ${this.name} Translation Error: 缺少 API key`);
     }
     this.key = key;
     this.proxy = config.proxy;
 
-    this.url = new URL('v2/translate', config.baseUrl || 'https://api-free.deepl.com').href;
+    this.url = new URL('language/translate/v2', config.baseUrl || 'https://translation.googleapis.com').href;
   }
 
-  override translate<T extends string>(record: Record<string, string>, target: T): Observable<TranslatedList> {
-    return from(Object.entries(record)).pipe(
-      map(([key, value]) => {
-        const str = this.replaceInterpolation(key, value);
-        return [key, str];
-      }),
-      // 每次处理50个
-      bufferCount(50),
-      // 每次延迟200ms
-      concatMap(list => of(list).pipe(delay(this.delayTime))),
-      // 转换数据结构
-      map(list =>
-        list.reduce<{ keys: string[]; texts: string[] }>(
-          (obj, [key, text]) => {
-            obj.keys.push(key);
-            obj.texts.push(text);
-            return obj;
-          },
-          { keys: [], texts: [] }
-        )
-      ),
-      // 进行翻译
-      mergeMap(({ texts, keys }) => {
-        return this.translateTexts(texts, target).pipe(
-          /**
-           * 失败之后进行重试
-           * 最多三次
-           * 指数性重试
-           */
-          retry({
-            count: 3,
-            delay: (_, retryCount) => timer(2 ** retryCount * this.delayTime),
-          }),
-          /**
-           * 三次都失败了话 写入日志
-           * 进行回退 直接返回一个null
-           */
-          catchError(err => {
-            this.writeErrorLog(`Google Translation Error : ${err.message}`, target, texts, keys);
-            return of(null);
-          }),
-          filter(Boolean),
-          map(({ translatedText }) =>
-            translatedText.map((text, i) => {
-              const key = keys[i];
-              return { target, translatedText: this.reductionInterpolation(key, text), key };
-            })
-          )
-        );
-      }, this.concurrent)
-    );
-  }
-
-  private translateTexts(texts: string[], target: string): Observable<{ target: string; translatedText: string[] }> {
+  translateTexts(texts: string[], target: string): Observable<string[]> {
     return this.createRequest(texts, target).pipe(
-      map(translations => ({
-        target,
-        translatedText: translations.map(translation => translation.translatedText),
-      }))
+      map(translations => translations.map(translation => translation.translatedText))
     );
   }
 
@@ -112,7 +44,7 @@ export class GoogleTranslator extends BaseTranslator {
     return new Observable(obs => {
       teenyRequest(
         {
-          uri: 'https://translation.googleapis.com/language/translate/v2',
+          uri: this.url,
           method: 'POST',
           json: {
             q: texts,

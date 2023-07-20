@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import { BaseTranslator } from '../../translator';
 
 const texts = [
@@ -55,11 +56,16 @@ const replaceTexts = [
   '$$0会员@:(scoreCenter.scoreRatio积$$1信息',
 ];
 class TestTranslator extends BaseTranslator {
+  name = 'test';
+
   replace(key: string, text: string): string {
     return super.replaceInterpolation(key, text);
   }
   reduction(key: string, text: string): string {
     return super.reductionInterpolation(key, text);
+  }
+  translateTexts(texts: string[], target: string, sourceLanguage: string): Observable<string[]> {
+    throw new Error('');
   }
 }
 const testTranslator = new TestTranslator();
