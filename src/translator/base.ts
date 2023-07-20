@@ -48,7 +48,10 @@ const RegList = [
   /(?<!\\)\$t\((\w+\.)*?\w+\)/g /** $t(s.ss.c) */,
   /(?<!\\)<\s*[a-zA-Z0-9]+\s*>/g /** <0> 或者 <xxxx>  */,
 ];
-export class BaseTranslator implements ITranslator {
+export class BaseTranslator extends TranslatorAdapter {
+  protected concurrent = 6;
+  protected delayTime = 332;
+
   private interpolationReplaceMap: Map<string, string[]> = new Map();
 
   private readonly replaceReg = new RegExp(RegList.map(reg => reg.source).join('|'), 'g');

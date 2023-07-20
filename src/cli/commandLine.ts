@@ -1,10 +1,9 @@
 import { CommandLineParser } from '@rushstack/ts-command-line';
-import { WriteAction } from './writeAction';
 import { CollectionAction } from './collectionAction';
 import { InitAction } from './initAction';
 import { TranslateAction } from './translateAction';
 import { VersionAction } from './versionAction';
-import { SetGlobalConfigAction } from './setAction';
+import { WriteAction } from './writeAction';
 
 export class BBTToolCommandLineParser extends CommandLineParser {
   constructor() {
@@ -25,6 +24,5 @@ export class BBTToolCommandLineParser extends CommandLineParser {
     this.addAction(new TranslateAction());
     this.addAction(new WriteAction());
     this.addAction(new VersionAction());
-    this.addAction(new SetGlobalConfigAction());
   }
 }

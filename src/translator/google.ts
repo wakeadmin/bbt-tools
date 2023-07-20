@@ -16,26 +16,29 @@ import { teenyRequest } from 'teeny-request';
 import { error } from 'log-symbols';
 import { BaseTranslator, TranslatedList } from './base';
 
-export class DeepLTranslator extends BaseTranslator {
+export class GoogleTranslator extends BaseTranslator {
   private readonly key: string;
   readonly proxy?: string;
-  private readonly concurrent = 6;
-  private readonly delayTime = 200;
+  private readonly url: string;
 
-  constructor(key?: string, proxy?: string) {
+  constructor(
+    key: string,
+    config: {
+      proxy?: string;
+      baseUrl?: string;
+    } = {}
+  ) {
     super();
     if (!key) {
-      throw new Error(`${error} DeepL Translation Error: 缺少 API key`);
+      throw new Error(`${error} Google Translation Error: 缺少 API key`);
     }
     this.key = key;
-    this.proxy = proxy;
+    this.proxy = config.proxy;
+
+    this.url = new URL('v2/translate', config.baseUrl || 'https://api-free.deepl.com').href;
   }
 
-  override translate<T extends string>(
-    record: Record<string, string>,
-    target: T,
-    sourceLanguage?: string
-  ): Observable<TranslatedList> {
+  override translate<T extends string>(record: Record<string, string>, target: T): Observable<TranslatedList> {
     return from(Object.entries(record)).pipe(
       map(([key, value]) => {
         const str = this.replaceInterpolation(key, value);
@@ -73,7 +76,7 @@ export class DeepLTranslator extends BaseTranslator {
            * 进行回退 直接返回一个null
            */
           catchError(err => {
-            this.writeErrorLog(`DeepL Translation Error : ${err.message}`, target, texts, keys);
+            this.writeErrorLog(`Google Translation Error : ${err.message}`, target, texts, keys);
             return of(null);
           }),
           filter(Boolean),
@@ -106,35 +109,31 @@ export class DeepLTranslator extends BaseTranslator {
       translatedText: string;
     }[]
   > {
-    const body = new URLSearchParams();
-    body.append('target_lang', target);
-    texts.forEach(text => body.append('text', text));
     return new Observable(obs => {
       teenyRequest(
         {
-          uri: 'https://api-free.deepl.com/v2/translate',
+          uri: 'https://translation.googleapis.com/language/translate/v2',
           method: 'POST',
-          body: body.toString(),
-          headers: {
-            'content-type': `application/x-www-form-urlencoded`,
-
-            Authorization: `DeepL-Auth-Key ${this.key}`,
+          json: {
+            q: texts,
+            target,
+            format: 'text',
+          },
+          qs: {
+            key: this.key,
           },
           proxy: this.proxy,
         },
-        (err, res, resBody: { translations: [{ detected_source_language: string; text: string }] }) => {
+        (err, _, body) => {
           if (err) {
             obs.error(err);
             return obs.complete();
           }
-          if (res.statusCode !== 200) {
-            obs.error(new Error(`DeepL Translation Error: ${res.body.message}`));
-          } else {
-            const list = resBody.translations.map(({ detected_source_language, text }) => ({
-              detectedSourceLanguage: detected_source_language,
-              translatedText: text,
-            }));
-            obs.next(list);
+          try {
+            const res = JSON.parse(body);
+            obs.next(res.data.translations);
+          } catch (e) {
+            obs.error(new Error(`Google Translation Error: 响应数据不正确 -> ${body}`));
           }
 
           obs.complete();

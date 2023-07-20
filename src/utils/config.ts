@@ -1,10 +1,9 @@
 import fse from 'fs-extra';
-import { platform } from 'os';
 import { resolve } from 'path';
 import { type Observable } from 'rxjs';
 
 import { ExistedFileError, NotFileError } from '../error';
-import { TranslatedList } from '../translate';
+import { TranslatedList } from '../translator';
 import { DiffModeEnum } from './diffTree';
 import { FileParser } from './parser';
 
@@ -87,46 +86,11 @@ export interface IBBTProjectConfig {
 
 const PROJECT_CONFIG_SOURCE = resolve(__dirname, '../template/config.js');
 const PROJECT_DEFAULT_CONFIG = resolve(__dirname, '../template/full.config.js');
-const IS_LINUX = platform() === 'linux';
-
-const HOME = IS_LINUX ? process.env.HOME! : resolve(process.env.HOMEDRIVE || '', process.env.HOMEPATH || '');
-
-const CONFIG_PATH = resolve(HOME, './.bbt/config.json');
-
-function save(config: IBBTGlobalConfig) {
-  fse.ensureFileSync(CONFIG_PATH);
-  fse.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
-}
-
-function read(): IBBTGlobalConfig {
-  if (fse.existsSync(CONFIG_PATH)) {
-    return JSON.parse(fse.readFileSync(CONFIG_PATH, 'utf8') || '{}');
-  }
-  return {};
-}
 
 export interface IBBTGlobalConfig {
   GoogleKey?: string;
   DeepLKey?: string;
   ChatGPTKey?: string;
-}
-
-let cache: IBBTGlobalConfig;
-
-export function setGlobalConfig<K extends keyof IBBTGlobalConfig = keyof IBBTGlobalConfig>(
-  key: K,
-  value: IBBTGlobalConfig[K]
-): void {
-  cache ??= read();
-  cache[key] = value;
-  save(cache);
-}
-
-export function getGlobalConfig<K extends keyof IBBTGlobalConfig = keyof IBBTGlobalConfig>(
-  key: K
-): IBBTGlobalConfig[K] {
-  cache ??= read();
-  return cache[key];
 }
 
 export function createProjectConfig(filePath: string): void {

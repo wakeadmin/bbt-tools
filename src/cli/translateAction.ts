@@ -13,13 +13,26 @@ import {
   ITranslator,
   TranslatorAlternatives,
   TranslatorListEnum,
-} from '../translate';
+} from '../translator';
 import { KeyTree } from '../utils';
-import { getGlobalConfig } from '../utils/config';
 import { IBBTValue, getExcelCtor } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
 
 const alternatives: TranslatorAlternatives[] = ['google', 'deepl', 'chatgpt'];
+
+const API_KEY_ENV_NAME_MAP = new Map<
+  TranslatorAlternatives,
+  {
+    api: string;
+    baseUrl: string;
+  }
+>([
+  ['chatgpt', { api: 'BBT_OPEN_AI_API_KEY', baseUrl: 'BBT_OPEN_AI_BASE_URL' }],
+  ['deepl', { api: 'BBT_DEEPL_API_KEY', baseUrl: 'BBT_DEEPL_BASE_URL' }],
+  ['google', { api: 'BBT_GOOGLE_API_KEY', baseUrl: 'BBT_GOOGLE_BASE_URL' }],
+]);
+
+const PROXY_ENV_NAME = 'BBT_PROXY';
 
 export interface ITranslateTextSource {
   [target: string]: {
@@ -34,6 +47,7 @@ export class TranslateAction extends BaseAction {
   private translationParameter!: CommandLineChoiceParameter;
   private proxyParameter!: CommandLineStringParameter;
   private apiKeyParameter!: CommandLineStringParameter;
+  private baseURLParameter!: CommandLineStringParameter;
   private globalTranslateParameter!: CommandLineFlagParameter;
   private chatGPTModelParameter!: CommandLineChoiceParameter;
   constructor() {
@@ -46,6 +60,7 @@ export class TranslateAction extends BaseAction {
 
   protected onDefineParameters(): void {
     super.onDefineParameters();
+
     this.translationParameter = this.defineChoiceParameter({
       parameterLongName: '--translator',
       parameterShortName: '-t',
@@ -53,10 +68,12 @@ export class TranslateAction extends BaseAction {
       description: '使用哪个翻译API',
       defaultValue: TranslatorListEnum.Google,
     });
+
     this.proxyParameter = this.defineStringParameter({
       parameterLongName: '--proxy',
       parameterShortName: '-p',
-      description: '代理地址',
+      environmentVariable: PROXY_ENV_NAME,
+      description: '正向代理地址',
       argumentName: 'PROXY',
     });
     this.globalTranslateParameter = this.defineFlagParameter({
@@ -76,6 +93,12 @@ export class TranslateAction extends BaseAction {
       parameterShortName: '-k',
       description: '翻译服务的API Key',
       argumentName: 'KEY',
+    });
+
+    this.baseURLParameter = this.defineStringParameter({
+      parameterLongName: '--base-url',
+      description: '反向代理地址',
+      argumentName: 'URL',
     });
   }
 
@@ -207,16 +230,38 @@ export class TranslateAction extends BaseAction {
   }
 
   private createTranslationService(provider: TranslatorAlternatives): ITranslator {
-    const key = this.apiKeyParameter.value;
+    const { apiKey, ...config } = this.getTranslatorConfig();
     switch (provider) {
       case TranslatorListEnum.Google:
-        return new GoogleTranslator(key || getGlobalConfig('GoogleKey'), this.proxyParameter.value);
+        return new GoogleTranslator(apiKey, config);
       case TranslatorListEnum.DeepL:
-        return new DeepLTranslator(key || getGlobalConfig('DeepLKey'), this.proxyParameter.value);
+        return new DeepLTranslator(apiKey, config);
       case TranslatorListEnum.ChatGPT:
-        return new ChatGPTTranslator(key || getGlobalConfig('ChatGPTKey'), this.proxyParameter.value);
+        return new ChatGPTTranslator(apiKey, config);
       default:
         throw new Error('无法找到对应的翻译提供者');
     }
+  }
+
+  private getTranslatorConfig(): {
+    apiKey: string;
+    baseUrl?: string;
+    proxy?: string;
+  } {
+    const { api, baseUrl: url } = API_KEY_ENV_NAME_MAP.get(
+      this.translationParameter.value as any as TranslatorAlternatives
+    )!;
+
+    const apiKey = this.apiKeyParameter.value || process.env[api];
+    const baseUrl = this.baseURLParameter.value || process.env[url];
+
+    if (apiKey) {
+      return {
+        apiKey,
+        baseUrl,
+        proxy: this.proxyParameter.value,
+      };
+    }
+    throw new Error(`缺少 API_KEY, 请传入 --key 参数或者通过设置环境变量 ${api}`);
   }
 }

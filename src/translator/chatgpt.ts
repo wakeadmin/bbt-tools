@@ -15,6 +15,7 @@ import {
 import { teenyRequest } from 'teeny-request';
 import { error } from 'log-symbols';
 import { BaseTranslator, TranslatedList } from './base';
+import { URL } from 'url';
 
 export enum ChatGPTModel {
   'gpt4' = 'gpt-4',
@@ -23,19 +24,26 @@ export enum ChatGPTModel {
 
 export class ChatGPTTranslator extends BaseTranslator {
   private readonly key: string;
-  readonly proxy?: string;
-  private readonly concurrent = 6;
-  private readonly delayTime = 200;
+  private readonly proxy?: string;
+
+  private readonly url: string;
 
   private model: ChatGPTModel = ChatGPTModel['gpt3.5'];
 
-  constructor(key?: string, proxy?: string) {
+  constructor(
+    key: string,
+    config: {
+      proxy?: string;
+      baseUrl?: string;
+    } = {}
+  ) {
     super();
     if (!key) {
       throw new Error(`${error} ChatGPT Translation Error: 缺少 API key`);
     }
     this.key = key;
-    this.proxy = proxy;
+    this.proxy = config.proxy;
+    this.url = new URL('v1/chat/completions', config.baseUrl || 'https://api.openai.com').href;
   }
 
   useModel(model: ChatGPTModel): void {
@@ -101,7 +109,8 @@ export class ChatGPTTranslator extends BaseTranslator {
     return new Observable(obs => {
       teenyRequest(
         {
-          uri: 'https://api.openai.com/v1/chat/completions',
+          uri: this.url,
+
           method: 'POST',
           body: JSON.stringify(body),
           headers: {

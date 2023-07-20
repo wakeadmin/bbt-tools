@@ -1,4 +1,4 @@
-import { BaseTranslator } from '../../translate';
+import { BaseTranslator } from '../../translator';
 
 const texts = [
   '@:(common.get)@:(scoreCenter.ruleSetting)@:(common.list)',
