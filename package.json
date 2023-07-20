@@ -12,9 +12,10 @@
   "files": [
     "lib/*",
     "bin/*",
-    "docs/*",
-    "scripts/*"
+    "docs/*"
   ],
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "heft test --clean",
     "test": "heft test",
