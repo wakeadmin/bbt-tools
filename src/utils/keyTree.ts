@@ -204,6 +204,10 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
   clear() {
     this.child.clear();
   }
+
+  delete(key: string): void {
+    this.child.delete(key);
+  }
 }
 
 export class KeyTreeRootNode extends KeyTreeNode<any> {

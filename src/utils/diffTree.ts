@@ -6,9 +6,35 @@ export const enum DiffModeEnum {
   'Relaxed' = 'relaxed',
 }
 
-const REMOVEFLAG = '@remove@';
+const DELETEKEY = '@remove@';
 
 export type DiffMutateFn<T extends {}> = (oldValue: T, newValue: T) => T;
+
+function patchKeys<T extends {}>(
+  newNode: KeyTreeNode<T>,
+  oldNode: KeyTreeNode<T>
+): { deleteKeys: string[]; addKeys: string[]; modifierKeys: string[] } {
+  const { deleteKeys, newChildrenKeys } = newNode.children
+    .map(item => item.key)
+    .reduce<{ deleteKeys: string[]; newChildrenKeys: string[] }>(
+      (obj, key) => {
+        if (key.endsWith(DELETEKEY)) {
+          obj.deleteKeys.push(key.slice(0, key.length - DELETEKEY.length));
+        } else {
+          obj.newChildrenKeys.push(key);
+        }
+        return obj;
+      },
+      { deleteKeys: [], newChildrenKeys: [] }
+    );
+
+  const oldChildrenKeys = oldNode.children.map(item => item.key);
+
+  const addKeys = difference(newChildrenKeys)(oldChildrenKeys);
+
+  const modifierKeys = intersection(newChildrenKeys)(oldChildrenKeys);
+  return { deleteKeys, addKeys, modifierKeys };
+}
 
 /**
  * 两个节点进行对比
@@ -28,14 +54,11 @@ export function assignNode<T extends {}>(
     return newNode.clone();
   }
 
-  const newChildrenKeys = newNode.children.map(item => item.key).filter(key => !key.endsWith(REMOVEFLAG));
-  const oldChildrenKeys = oldNode.children.map(item => item.key).filter(key => !key.endsWith(REMOVEFLAG));
-
-  const addKeys = difference(newChildrenKeys)(oldChildrenKeys);
-
-  const modifierKeys = intersection(newChildrenKeys)(oldChildrenKeys);
+  const { deleteKeys, addKeys, modifierKeys } = patchKeys<T>(newNode, oldNode);
 
   oldNode.mutate(oldValue => mutateFn(oldValue, newNode.getValue()));
+
+  deleteKeys.forEach(key => newNode.delete(key));
 
   addKeys.forEach(key => {
     oldNode.addChild(key, newNode.getChild(key)!.clone());
