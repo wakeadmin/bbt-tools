@@ -1,6 +1,6 @@
 import { CellValue, Row, Workbook, Worksheet } from 'exceljs';
 import fse from 'fs-extra';
-import { extname } from 'path';
+import { dirname, extname } from 'path';
 import { KeyTree, KeyTreeNodeType } from './keyTree';
 
 const SHEET_NAME = 'BBT';
@@ -98,6 +98,9 @@ export class BBTExcel<T extends IBBTValue = any> {
 
   async save(file: string): Promise<void> {
     this.checkReady();
+
+    fse.ensureDirSync(dirname(file));
+
     await this.workBook.xlsx.writeFile(file);
   }
 
@@ -188,6 +191,9 @@ export class BBTCsv<T extends IBBTValue> extends BBTExcel<T> {
 
   async save(file: string): Promise<void> {
     this.checkReady();
+
+    fse.ensureDirSync(dirname(file));
+
     const stream = fse.createWriteStream(file, { flags: 'w', encoding: 'utf8' });
     /**
      * csv采用BOM编码
