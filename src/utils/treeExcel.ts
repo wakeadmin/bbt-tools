@@ -107,9 +107,11 @@ export class BBTExcel<T extends IBBTValue = any> {
   private getRowValue(row: Row, key: string): string {
     const index = this.columnMap[key];
     const value = (row.values as any)[index] as CellValue;
-    if (typeof value === 'boolean') {
+
+    if (typeof value === 'object') {
       throw new Error(`value is Object -> rows: ${row.number}; key: ${key} `);
     }
+
     return value as string;
   }
 
