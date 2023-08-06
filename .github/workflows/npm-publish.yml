@@ -20,21 +20,6 @@ jobs:
           cache: 'pnpm'
       - run: pnpm i
       - run: pnpm build
-
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      # 安装 pnpm
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'pnpm'
-          registry-url: https://registry.npmjs.org/
-      - run: npm publish
+      - run: pnpm publish --registry=https://registry.npmjs.org/
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
