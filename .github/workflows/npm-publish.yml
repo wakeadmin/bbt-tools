@@ -20,6 +20,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm i
       - run: pnpm build
-      - run: pnpm publish --registry=https://registry.npmjs.org/
+      - run: npm config set //registry.npmjs.org/:_authToken  $NODE_AUTH_TOKEN
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - run: pnpm publish --registry=https://registry.npmjs.org/ --access public
