@@ -35,9 +35,7 @@
 <br>
 <br>
 
-## 使用
-
-### 安装
+## 安装
 
 ```shell
 $ npm install @wakeadmin/bbt  // or
@@ -48,10 +46,11 @@ $ npx bbt [command] <options>
 ```
 
 <br>
+<br>
 
-### 命令
+## 命令
 
-#### bbt init
+### bbt init
 
 初始化，将生成配置文件
 
@@ -68,6 +67,13 @@ module.exports = {
   exclude: ['node_modules'],
 };
 ```
+
+<br>
+
+`langs` 是我们需要支持的语言，这是一个字符串数组，其中数组的第一项为`基准语言`，也就是我们会通过基准语言来：
+
+- 作为基准翻译到其他语言
+- 已基准语言的语言包为基础，对比和推断需要翻译的其他语言包
 
 <br>
 <br>
@@ -166,7 +172,7 @@ module.exports = {
 <br>
 <br>
 
-#### bbt collection
+### bbt collection
 
 收集所有的符合要求的语言包，并将信息提取到 `bbt.csv` 中，方便翻译人员进行翻译和校准。当然你也可以使用 `bbt translate` 自动翻译
 
@@ -191,23 +197,57 @@ $ bbt collection -c ./config/bbt-config.json
 $ npx bbt translate
 ```
 
-使用翻译 API 对`excel`文件进行翻译
+使用翻译 API 对`excel`(bbt.csv)文件进行翻译
 
-| name         | shortName | type                               | description                                                             | default           | required |
-| ------------ | --------- | ---------------------------------- | ----------------------------------------------------------------------- | ----------------- | -------- |
-| --translator | -t        | `'google' \| 'deepl' \| 'chatgpt'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准  | `'google'`        | `false`  |
-| --proxy      | -p        | `string`                           | 正向代理地址 , 如果为空的话，会通过[环境变量进行获取](#环境变量)        | `-`               | `false`  |
-| --global     | -g        | `boolean`                          | 是否进行全局翻译, 默认情况下只会翻按需翻译                              | `false`           | `false`  |
-| --gm         | -         | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                     | `'gpt-3.5-turbo'` | `false`  |
-| --api-key    | -k        | `string`                           | 翻译服务的`API Key `, 如果为空的话，会通过[环境变量进行获取](#环境变量) | `-`               | `false`  |
-| --base-url   | -         | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)         | `-`               | `false`  |
+| name         | shortName | type                               | description                                                                 | default           | required |
+| ------------ | --------- | ---------------------------------- | --------------------------------------------------------------------------- | ----------------- | -------- |
+| --translator | -t        | `'google' \| 'deepl' \| 'chatgpt'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准      | `'google'`        | `false`  |
+| --proxy      | -p        | `string`                           | 正向代理地址 , 如果为空的话，会通过[环境变量进行获取](#环境变量)            | `-`               | `false`  |
+| --force      | -f        | `boolean`                          | 是否强制进行翻译, 默认情况下只会翻按需翻译(即无翻译内容时翻译)， 请谨慎开启 | `false`           | `false`  |
+| --model      | -         | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                         | `'gpt-3.5-turbo'` | `false`  |
+| --api-key    | -k        | `string`                           | 翻译服务的`API Key `, 如果为空的话，会通过[环境变量进行获取](#环境变量)     | `-`               | `false`  |
+| --base-url   | -         | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)             | `-`               | `false`  |
 
-> <br>
-> <br>
-> <br>
-> <br>
+bbt 支持通过 Google、DeepL、ChatGPT 等方案进行初步的机器翻译。如果你想使用其他的翻译服务，可以通过自定义插件的方式进行扩展.
 
-#### bbt write
+### Google 翻译
+
+默认使用的就是 Google 翻译
+
+```
+npx bbt translate -t google --api-key GOOGLE_TRANSLATION_API_KEY
+```
+
+可以通过 --api-key 选项或者 BBT_GOOGLE_API_KEY 环境变量来配置 Google 翻译的 API KEY。
+
+我们也建议你将环境变量配置在用户目录下的 .profile 或者 .bashrc 这类文件中，这样可以避免每次都需要输入 API KEY。
+
+Google 翻译需要依赖科学上网，需要自行解决。有两种代理配置方式：
+
+- 通过 --proxy 选项或者 BBT_PROXY 环境变量来配置正向代理地址，bbt 会自动将请求转发到代理地址上
+- 通过终端代理的方式进行配置，例如：`export http_proxy=YOU_PROXY_ADDRESS`
+
+<br>
+<br>
+
+### DeepL 翻译
+
+和 Google 翻译类似，需要通过 --api-key 选项或者 BBT_DEEPL_API_KEY 环境变量来配置 DeepL 翻译的 API KEY。
+
+<br>
+
+### ChatGPT 翻译
+
+- `--model` 确定使用的 ChatGPT 模型版本。默认为 `gpt-3.5-turbo`
+- `--base-url` 或 `BBT_OPEN_AI_BASE_URL` 环境变量。如果你自己搭建了 ChatGPT 的代理服务，可以通过这个选项来配置
+- `--api-key` 或 `BBT_OPEN_AI_API_KEY` 配置 OPEN AI 的 API KEY
+
+<br>
+<br>
+<br>
+<br>
+
+### bbt write
 
 ```shell
 $ npx bbt write
@@ -223,7 +263,9 @@ $ npx bbt write
 <br>
 <br>
 
-### 环境变量
+## 高级
+
+### 支持的环境变量
 
 `bbt` 依赖于以下环境变量
 
@@ -236,8 +278,6 @@ $ npx bbt write
 | BBT_GOOGLE_API_KEY   | `Google`服务所依赖的`API Key`            |
 | BBT_GOOGLE_BASE_URL  | `Google`服务的反向代理地址               |
 | BBT_PROXY            | 使用`translate`命令时的正向代理地址      |
-
-## 高级
 
 ### 自定义解析文件
 
@@ -317,3 +357,11 @@ module.exports = {
   },
 };
 ```
+
+<br>
+<br>
+<br>
+
+## License
+
+MIT

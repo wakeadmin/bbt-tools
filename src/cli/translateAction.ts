@@ -84,13 +84,13 @@ export class TranslateAction extends BaseAction {
       argumentName: 'PROXY',
     });
     this.globalTranslateParameter = this.defineFlagParameter({
-      parameterLongName: '--global',
-      parameterShortName: '-g',
-      description: '是否执行全局翻译',
+      parameterLongName: '--force',
+      parameterShortName: '-f',
+      description: '是否执行强制翻译',
     });
 
     this.chatGPTModelParameter = this.defineChoiceParameter({
-      parameterLongName: '--gm',
+      parameterLongName: '--model',
       alternatives: [ChatGPTModel['gpt3.5'], ChatGPTModel.gpt4],
       description: '使用的chatgpt model',
       defaultValue: ChatGPTModel['gpt3.5'],
