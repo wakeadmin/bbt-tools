@@ -1,8 +1,8 @@
-import { CollectionAction } from '../../cli/collectionAction';
+import { CollectAction } from '../../cli/collectAction';
 import { KeyTree, KeyTreeNodeType } from '../../utils';
 import { DiffModeEnum, diffTree } from '../../utils/diffTree';
 
-class TestAction extends CollectionAction {
+class TestAction extends CollectAction {
   config = {
     langs: ['zh', 'en'],
   } as any;

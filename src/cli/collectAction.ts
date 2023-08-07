@@ -18,6 +18,7 @@ import {
 
 import { getExcelCtor, IBBTValue } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
+import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
 
 function createNode(value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) {
   const nodeType = typeof value === 'string' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
@@ -54,10 +55,12 @@ function setNodeValue(
   }
 }
 
-export class CollectionAction extends BaseAction {
+export class CollectAction extends BaseAction {
+  private strictParameter!: CommandLineFlagParameter;
+
   constructor() {
     super({
-      actionName: 'collection',
+      actionName: 'collect',
       summary: '收集符合要求的语言包',
       documentation: '收集符合要求的语言包并按指定的文件结构供翻译人员翻译',
     });
@@ -65,6 +68,11 @@ export class CollectionAction extends BaseAction {
 
   protected onDefineParameters(): void {
     super.onDefineParameters();
+
+    this.strictParameter = this.defineFlagParameter({
+      parameterLongName: '--strict',
+      description: '使用严格模式进行对比, 该优先级高于配置文件',
+    });
   }
 
   protected async onExecute(): Promise<void> {
@@ -86,7 +94,7 @@ export class CollectionAction extends BaseAction {
 
         const oldTree = await this.readExcel().then(excel => excel.toTree());
         spinner.text = '对比中';
-        const mutateFn = this.createDiffer(this.config.diffMode);
+        const mutateFn = this.createDiffer(this.strictParameter.value ? DiffModeEnum.Strict : this.config.diffMode);
         tree = diffTree(newTree, oldTree, mutateFn);
       } else {
         tree = newTree;
@@ -168,7 +176,10 @@ export class CollectionAction extends BaseAction {
     const [consult, ...otherLangs] = this.config.langs;
     switch (mode) {
       case DiffModeEnum.Relaxed:
-        return (_, value) => value;
+        return (oldValue, newValue) =>
+          mergeWith(newValue, oldValue, (source, src) => {
+            return source || src;
+          });
       case DiffModeEnum.Strict:
         return (oldValue, newValue) => {
           if (newValue[consult] !== oldValue[consult]) {
