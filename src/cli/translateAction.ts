@@ -18,6 +18,7 @@ import {
   ChatGPTModel,
   ChatGPTTranslator,
   DeepLTranslator,
+  FreeGoogleTranslator,
   GoogleTranslator,
   ITranslator,
   TranslatorAlternatives,
@@ -241,8 +242,13 @@ export class TranslateAction extends BaseAction {
   private createTranslationService(provider: TranslatorAlternatives): ITranslator {
     const { apiKey, ...config } = this.getTranslatorConfig();
     switch (provider) {
-      case TranslatorListEnum.Google:
-        return new GoogleTranslator(apiKey, config);
+      case TranslatorListEnum.Google: {
+        if (apiKey) {
+          return new GoogleTranslator(apiKey, config);
+        }
+        console.warn('你正在使用免费的 Google 翻译服务， 因此速度会比较慢以及翻译结果可能不太准确');
+        return new FreeGoogleTranslator(config);
+      }
       case TranslatorListEnum.DeepL:
         return new DeepLTranslator(apiKey, config);
       case TranslatorListEnum.ChatGPT:
