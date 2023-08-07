@@ -1,3 +1,4 @@
+import { clone } from 'lodash/fp';
 import logSymbols from 'log-symbols';
 
 interface IKeyTreeNode<T extends {}> {
@@ -197,7 +198,7 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
       node.addChild(child.key, child.clone());
     });
 
-    node.mutate(() => this.getValue());
+    node.mutate(() => clone(this.getValue()));
     return node;
   }
 

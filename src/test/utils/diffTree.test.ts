@@ -19,6 +19,36 @@ describe('diff tree', () => {
     expect(result.get('s.A')).toBeNull();
   });
 
+  test('object diff', () => {
+    const treeA = source.clone() as KeyTree<{ name: string; age: number }>;
+    treeA.get('s.A')!.mutate(val => {
+      val.age = 29;
+      return val;
+    });
+
+    const resultA = diffTree(treeA, source);
+
+    expect(resultA.get('s.A')!.getValue()).toEqual({
+      name: 'SA',
+      age: 29,
+    });
+
+    const treeB = source.clone();
+
+    const resultB = diffTree(treeB, treeA);
+
+    expect(treeB.get('s.A')!.getValue()).toEqual({
+      name: 'SA',
+    });
+    expect(treeA.get('s.A')!.getValue()).toEqual({
+      name: 'SA',
+      age: 29,
+    });
+    expect(resultB.get('s.A')!.getValue()).toEqual({
+      name: 'SA',
+    });
+  });
+
   test('type edit 2', () => {
     const tree = source.clone();
     tree.get('s.A')!.nodeType = KeyTreeNodeType.Node;
