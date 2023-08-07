@@ -50,7 +50,7 @@ export interface IBBTProjectConfig {
     //  * @param getOriginalResult  获取内置的文件收集结果
     //  * @returns {}
     //  */
-    // collectionFile?: (
+    // collectFile?: (
     //   config: Pick<BBTConfig, 'exclude' | 'test' | 'src'>,
     //   getOriginalResult: () => Promise<string[]>
     // ) => Promise<string[]>;

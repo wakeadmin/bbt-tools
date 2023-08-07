@@ -4,19 +4,17 @@
 
 `config`
 
-```json
-{
-  "langs": ["zh", "en", "jp"],
-  "resourcePath": "./",
-  "test": "*.\\.tr",
-  "src": "./src",
-  "exclude": [],
-  "excelPath": "./bbt-lang/bbt.xlsx",
-  "generateExportFile": false,
-  "exportFileName": "translation.js",
-  "diffMode": "relaxed",
-  "outFileExtName": "tr"
-}
+```js
+module.exports = {
+  langs: ['zh', 'en'],
+  resourcePath: './',
+  test: '.*\\.tr$',
+  src: './src',
+  exclude: ['node_modules'],
+  bbtExcelPath: './bbt-lang/bbt.csv',
+  diffMode: 'relaxed',
+  outFileExtName: 'tr',
+};
 ```
 
 1. `exclude`是一个根据正则进行过滤的数组, 假设`src`设置为`src/`, 且目录如下
@@ -36,7 +34,7 @@
 
 `^test` -> 只会忽略`src/test`, 不会忽略`src/module/test`
 
-#### collection
+#### collect
 
 - 收集文件
 
@@ -96,7 +94,7 @@ langs => ['zh','en']
 
   > 不会处理`excel`的排序，因此，`excel`在经过多次更新之后的字段顺序是会改变的。
 
-#### build
+#### write
 
 将`excel`里的信息输出到指定的目录下
 
@@ -128,13 +126,6 @@ langs => ['zh','en']
 
   - 非全局翻译， 那么会是用第三列作为翻译源，并判断其他列是否存在值， 存在则不进行翻译操作，否则调用`翻译API`进行翻译并重写进`excel文件`
 
-#### update
-
-根据语义化版本号，只有在`major`变更的时候，才允许出现破坏式的变更。
-因此，在每次发布大版本的时候, 我们可以对这个版本所出现的破坏式变更进行自动化的迁移。
-通过`update`命令，首先获取最新的版本，然后进行安装。
-安装完成之后，通过判断当前版本与最新版本的差距，依次运行对应的迁移脚本进行迁移；
-
 ### 设计实现
 
 为了防止`key`重复，因此在`i18n`的处理上，我们基于功能模块，会给对应的语言内容加上一个对应的命名空间，这样就会导致多层对象的嵌套，因此，`bbt-tools`做的第一步便是将这些对象打平，并且基于此，我们可以进行全局的`key`的重复检测；之后，我们的所有操作都依赖于这个打平后的`一维对象`进行操作，但是每个操作所依赖的数据结构却不一致，并且我们还需要对`excel`的文件进行读写操作。因此，封装了`BBTExcel`类来进行`excel`文件的读写操作，而`KeyTree`则是用来管理所有的数据；
@@ -146,7 +137,7 @@ langs => ['zh','en']
   因此我们需要通过一个字典树来进行检测
 
 - 数据结构
-  - `collection`
+  - `collect`
     该操作的目的便是把`JSON`对象的每一条数据都写入到`excel`文件之中，因此更加关注于`key`。希望得到的数据结构是如下
     ```ts
     interface structure {
@@ -157,8 +148,8 @@ langs => ['zh','en']
     }
     ```
   - `translate`
-    跟`collection`类似
-  - `build`
+    跟`collect`类似
+  - `write`
     该操作的目的是把`JSON`对象写入到对应的文件里，因此更加关注于`path`。希望得到的数据结构是如下
     ```ts
     interface structure {
@@ -169,10 +160,3 @@ langs => ['zh','en']
       };
     }
     ```
-
-- `update`
-
-1. 获取最新的版本信息
-2. 判断是否需要升级
-3. 安装最新的包
-4. 动态导入最新的包的`srcipts/update.js`文件，执行进行更新

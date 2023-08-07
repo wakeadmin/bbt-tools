@@ -25,7 +25,7 @@
 
 `bbt`的工作流程如下：
 
-1. 收集所有的翻译内容 - (`npx bbt collection`)
+1. 收集所有的翻译内容 - (`npx bbt Collect`)
 2. 将翻译内容导出到 Excel(excel 文件或者 CSV) 表格中
 3. 将 excel 表格发送给翻译人员, 或者程序员通过翻译工具翻译 - (`npx bbt translate`)
 4. 翻译人员翻译或校准完成之后，将 excel 表格发送给开发人员
@@ -172,7 +172,7 @@ module.exports = {
 <br>
 <br>
 
-### bbt collection
+### bbt Collect
 
 收集所有的符合要求的语言包，并将信息提取到 `bbt.csv` 中，方便翻译人员进行翻译和校准。当然你也可以使用 `bbt translate` 自动翻译
 
@@ -184,7 +184,7 @@ module.exports = {
 <br>
 
 ```shell
-$ bbt collection -c ./config/bbt-config.json
+$ bbt Collect -c ./config/bbt-config.json
 ```
 
 <br>
