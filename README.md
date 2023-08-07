@@ -199,14 +199,14 @@ $ npx bbt translate
 
 使用翻译 API 对`excel`(bbt.csv)文件进行翻译
 
-| name         | shortName | type                               | description                                                                 | default           | required |
-| ------------ | --------- | ---------------------------------- | --------------------------------------------------------------------------- | ----------------- | -------- |
-| --translator | -t        | `'google' \| 'deepl' \| 'chatgpt'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准      | `'google'`        | `false`  |
-| --proxy      | -p        | `string`                           | 正向代理地址 , 如果为空的话，会通过[环境变量进行获取](#环境变量)            | `-`               | `false`  |
-| --force      | -f        | `boolean`                          | 是否强制进行翻译, 默认情况下只会翻按需翻译(即无翻译内容时翻译)， 请谨慎开启 | `false`           | `false`  |
-| --model      | -         | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                         | `'gpt-3.5-turbo'` | `false`  |
-| --api-key    | -k        | `string`                           | 翻译服务的`API Key `, 如果为空的话，会通过[环境变量进行获取](#环境变量)     | `-`               | `false`  |
-| --base-url   | -         | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)             | `-`               | `false`  |
+| name         | shortName | type                               | description                                                                     | default           | required |
+| ------------ | --------- | ---------------------------------- | ------------------------------------------------------------------------------- | ----------------- | -------- |
+| --translator | -t        | `'google' \| 'deepl' \| 'chatgpt'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准          | `'google'`        | `false`  |
+| --proxy      | -p        | `string`                           | 正向代理地址 , 如果为空的话，会通过[环境变量进行获取](#环境变量)                | `-`               | `false`  |
+| --force      | -f        | `boolean`                          | 是否强制进行翻译, 默认情况下只会翻按需翻译(即无翻译内容时翻译)， **请谨慎开启** | `false`           | `false`  |
+| --model      | -         | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                             | `'gpt-3.5-turbo'` | `false`  |
+| --api-key    | -k        | `string`                           | 翻译服务的`API Key `, 如果为空的话，会通过[环境变量进行获取](#环境变量)         | `-`               | `false`  |
+| --base-url   | -         | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)                 | `-`               | `false`  |
 
 bbt 支持通过 Google、DeepL、ChatGPT 等方案进行初步的机器翻译。如果你想使用其他的翻译服务，可以通过自定义插件的方式进行扩展.
 
@@ -236,7 +236,7 @@ Google 翻译需要依赖科学上网，需要自行解决。有两种代理配�
 
 <br>
 
-### ChatGPT 翻译
+### ChatGPT 翻译(实验性)
 
 - `--model` 确定使用的 ChatGPT 模型版本。默认为 `gpt-3.5-turbo`
 - `--base-url` 或 `BBT_OPEN_AI_BASE_URL` 环境变量。如果你自己搭建了 ChatGPT 的代理服务，可以通过这个选项来配置
