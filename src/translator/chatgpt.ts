@@ -68,21 +68,49 @@ export class ChatGPTTranslator extends BaseTranslator {
             }[];
           }
         ) => {
-          if (err) {
-            obs.error(err);
-            return obs.complete();
-          }
-          if (res.statusCode !== 200) {
-            obs.error(new Error(`ChatGPT(${this.model}) Translation Error: ${res.body.message}`));
-          } else {
-            obs.next(JSON.parse(resBody.choices.find(item => item.message.role === 'assistant')!.message.content));
-          }
+          try {
+            if (err) {
+              return obs.error(err);
+            }
 
-          obs.complete();
+            if (res.statusCode === 200) {
+              const content = resBody.choices.find(item => item.message.role === 'assistant')!.message.content;
+              const result = this.parseTranslation(content);
+              if (this.validTranslatedResult(texts, result)) {
+                obs.next(result);
+              } else {
+                obs.error(new Error(`ChatGPT(${this.model}) Translation Error: 翻译结果不正确 -》 ${content}`));
+              }
+            } else {
+              obs.error(new Error(`ChatGPT(${this.model}) Translation Error: ${res.body.message}`));
+            }
+          } finally {
+            obs.complete();
+          }
         }
       );
       return () => obs.complete();
     });
+  }
+
+  private parseTranslation(text: string): string[] {
+    // gpt 输出的内容不稳定 会存在以下几种情况
+    // - ['hello', 'world]
+    // - ['hello', 'world'].
+    // - ['hello', 'world']
+    try {
+      const start = text.indexOf('[');
+      const end = text.indexOf(']');
+      if (start === -1 || start > end) {
+        return [];
+      }
+      return JSON.parse(text.slice(start, end));
+    } catch (e) {}
+    return [];
+  }
+
+  private validTranslatedResult(source: string[], translation: string[]): boolean {
+    return source.length === translation.length;
   }
 
   private buildBody(target: string, texts: string[]) {
@@ -91,9 +119,8 @@ export class ChatGPTTranslator extends BaseTranslator {
       messages: [
         {
           role: 'user',
-          content: `Translate the following content into ${target}, where $$1 is a placeholder and is not to be translated. Please directly output the translation result.
-      ${JSON.stringify(texts)}
-      `,
+          content: `你是一个翻译专家，请帮我把字符串数组翻译成${target}，其中， $$X 代表占位符，不进行翻译。请按照顺序输出一个字符串数组。      
+          这是需要翻译字符串数组： ${JSON.stringify(texts)}`,
         },
       ],
     };
