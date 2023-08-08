@@ -2,10 +2,15 @@
 
 一个自动化的语言包管理和翻译工具，受启发于《圣经》中的巴别塔故事，旨在解决多语言之间的沟通障碍。
 
+<br>
+<br>
+
 <p align="center">
   <img src="./logo.png" alt="bbt" />
 </p>
 
+<br>
+<br>
 <p align="center">
 <a href="https://github.com/wakeadmin/bbt-tools" target="__blank"><img src="https://img.shields.io/github/last-commit/wakeadmin/bbt-tools?color=c977be" alt="GitHub last commit" /></a>
 <a href="https://github.com/wakeadmin/bbt-tools/issues" target="__blank"><img src="https://img.shields.io/github/issues/wakeadmin/bbt-tools?color=a38eed" alt="GitHub issues" /></a>
@@ -17,8 +22,6 @@
 
 <br>
 
----
-
 <br>
 
 ## 背景
@@ -26,8 +29,7 @@
 `bbt` 是 `Tower of Babel` 即巴别塔的拼音首字母，巴别塔是出自《圣经》的一则故事，其中人们为显示自己的力量而建塔，最终由于语言的障碍而失败。我们的`bbt`工具旨在解决类似的多语言沟通问题。
 <br>
 <br>
-
----
+<br>
 
 ## 工作流程和初衷
 
