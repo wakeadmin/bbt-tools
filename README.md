@@ -294,6 +294,9 @@ module.exports = {
 
 [faq](./docs/faq.md)
 
+<br>
+<br>
+
 ## License
 
-MIT
+[MIT](./LICENSE)
