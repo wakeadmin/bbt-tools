@@ -1,5 +1,5 @@
 import { error } from 'log-symbols';
-import { Observable, map, from, mergeMap, delay } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { teenyRequest } from 'teeny-request';
 import { BaseTranslator } from './base';
 
@@ -79,7 +79,7 @@ export class GoogleTranslator extends BaseTranslator {
 }
 
 export class FreeGoogleTranslator extends GoogleTranslator {
-  concurrent = 1;
+  bufferCount = 1;
   constructor(
     config: {
       proxy?: string;
@@ -89,19 +89,6 @@ export class FreeGoogleTranslator extends GoogleTranslator {
     super(FREE_GOOGLE_KEY, config);
 
     this.url = new URL('/translate_a/single', config.baseUrl || 'https:///translate.googleapis.com').href;
-  }
-
-  translateTexts(texts: string[], target: string, source: string): Observable<string[]> {
-    return from(texts).pipe(
-      mergeMap(
-        text =>
-          this.createRequest([text], target, source).pipe(
-            delay(~~(Math.random() * this.delayTime)),
-            map(item => [item[0].translatedText])
-          ),
-        6
-      )
-    );
   }
 
   override createRequest(

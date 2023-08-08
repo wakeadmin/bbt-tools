@@ -65,6 +65,10 @@ const RegList = [
 export abstract class BaseTranslator extends TranslatorAdapter {
   protected concurrent = 6;
   protected delayTime = 332;
+  /**
+   * 每次处理的文本条数
+   */
+  protected bufferCount = 50;
 
   private interpolationReplaceMap: Map<string, string[]> = new Map();
 
@@ -81,8 +85,8 @@ export abstract class BaseTranslator extends TranslatorAdapter {
         const str = this.replaceInterpolation(key, value);
         return [key, str];
       }),
-      // 每次处理50个
-      bufferCount(50),
+
+      bufferCount(this.bufferCount),
       concatMap(list => of(list).pipe(delay(this.delayTime))),
       // 转换数据结构
       map(list =>
