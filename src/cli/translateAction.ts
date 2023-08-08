@@ -19,6 +19,7 @@ import {
   ChatGPTTranslator,
   DeepLTranslator,
   FreeGoogleTranslator,
+  FREE_GOOGLE_KEY,
   GoogleTranslator,
   ITranslator,
   TranslatorAlternatives,
@@ -243,11 +244,11 @@ export class TranslateAction extends BaseAction {
     const { apiKey, ...config } = this.getTranslatorConfig();
     switch (provider) {
       case TranslatorListEnum.Google: {
-        if (apiKey) {
-          return new GoogleTranslator(apiKey, config);
+        if (apiKey === FREE_GOOGLE_KEY) {
+          console.warn('你正在使用免费的 Google 翻译服务， 因此速度会比较慢以及翻译结果可能不太准确');
+          return new FreeGoogleTranslator(config);
         }
-        console.warn('你正在使用免费的 Google 翻译服务， 因此速度会比较慢以及翻译结果可能不太准确');
-        return new FreeGoogleTranslator(config);
+        return new GoogleTranslator(apiKey, config);
       }
       case TranslatorListEnum.DeepL:
         return new DeepLTranslator(apiKey, config);
@@ -263,11 +264,13 @@ export class TranslateAction extends BaseAction {
     baseUrl?: string;
     proxy?: string;
   } {
-    const { api, baseUrl: url } = API_KEY_ENV_NAME_MAP.get(
-      this.translationParameter.value as any as TranslatorAlternatives
-    )!;
+    const translator = this.translationParameter.value as any as TranslatorAlternatives;
+    const { api, baseUrl: url } = API_KEY_ENV_NAME_MAP.get(translator)!;
 
-    const apiKey = this.apiKeyParameter.value || process.env[api];
+    const apiKey =
+      this.apiKeyParameter.value ||
+      process.env[api] ||
+      (translator === TranslatorListEnum.Google ? FREE_GOOGLE_KEY : null);
     const baseUrl = this.baseURLParameter.value || process.env[url];
 
     if (apiKey) {

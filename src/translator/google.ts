@@ -3,6 +3,7 @@ import { Observable, map, from, mergeMap, delay } from 'rxjs';
 import { teenyRequest } from 'teeny-request';
 import { BaseTranslator } from './base';
 
+export const FREE_GOOGLE_KEY = 'Free';
 export class GoogleTranslator extends BaseTranslator {
   private readonly key: string;
   readonly proxy?: string;
@@ -26,15 +27,16 @@ export class GoogleTranslator extends BaseTranslator {
     this.url = new URL('language/translate/v2', config.baseUrl || 'https://translation.googleapis.com').href;
   }
 
-  translateTexts(texts: string[], target: string): Observable<string[]> {
-    return this.createRequest(texts, target).pipe(
+  translateTexts(texts: string[], target: string, source: string): Observable<string[]> {
+    return this.createRequest(texts, target, source).pipe(
       map(translations => translations.map(translation => translation.translatedText))
     );
   }
 
   protected createRequest(
     texts: string[],
-    target: string
+    target: string,
+    source: string
   ): Observable<
     {
       detectedSourceLanguage: string;
@@ -84,16 +86,16 @@ export class FreeGoogleTranslator extends GoogleTranslator {
       baseUrl?: string;
     } = {}
   ) {
-    super('free', config);
+    super(FREE_GOOGLE_KEY, config);
 
     this.url = new URL('/translate_a/single', config.baseUrl || 'https:///translate.googleapis.com').href;
   }
 
-  translateTexts(texts: string[], target: string): Observable<string[]> {
+  translateTexts(texts: string[], target: string, source: string): Observable<string[]> {
     return from(texts).pipe(
       mergeMap(
         text =>
-          this.createRequest([text], target).pipe(
+          this.createRequest([text], target, source).pipe(
             delay(~~(Math.random() * this.delayTime)),
             map(item => [item[0].translatedText])
           ),
@@ -104,7 +106,8 @@ export class FreeGoogleTranslator extends GoogleTranslator {
 
   override createRequest(
     texts: [string],
-    target: string
+    target: string,
+    source: string
   ): Observable<
     {
       detectedSourceLanguage: string;
@@ -118,15 +121,15 @@ export class FreeGoogleTranslator extends GoogleTranslator {
           method: 'GET',
           qs: {
             client: 'gtx',
-            sl: 'auto',
+            sl: source,
             tl: target,
             hl: 'zh-CN',
-            dt: 'bd',
+            dt: ['t', 'bd'],
             ie: 'UTF-8',
             oe: 'UTF-8',
             dj: '1',
             source: 'icon',
-            q: encodeURI(texts[0]),
+            q: texts[0],
           },
           proxy: this.proxy,
         },
