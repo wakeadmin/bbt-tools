@@ -1,4 +1,6 @@
-<br>
+# bbt
+
+一个自动化的语言包管理和翻译工具，受启发于《圣经》中的巴别塔故事，旨在解决多语言之间的沟通障碍。
 
 <p align="center">
   <img src="./logo.png" alt="bbt" />
@@ -19,8 +21,9 @@
 
 <br>
 
-`bbt` 是一个自动化的语言包管理和翻译工具。BBT 是 `Tower of Babel` 即巴别塔的意思，巴别塔是出自《圣经》的一则故事，故事发生在洪水之后，人类开始繁衍生息，他们决定建造一座高塔，塔顶能够触及天空，以此来彰显自己的力量。然而，上帝认为人类过于傲慢，于是让他们说不同的语言，使他们无法沟通，最终导致建塔工程的失败。
+## 背景
 
+`bbt` 是 `Tower of Babel` 即巴别塔的拼音首字母，巴别塔是出自《圣经》的一则故事，其中人们为显示自己的力量而建塔，最终由于语言的障碍而失败。我们的`bbt`工具旨在解决类似的多语言沟通问题。
 <br>
 <br>
 
@@ -89,96 +92,7 @@ module.exports = {
 <br>
 <br>
 
-下面详细介绍 bbt.config.js 支持的配置项
-
-```ts
-{
-  /**
-   * 支持的语言列表, 比如 zh, en, ja, en-US
-   * 具体取决于开发者如何定义语言标识符
-   * bbt 会按照这里定义的标识符进行语言包文件查找和生成
-   * 默认为 ['zh', 'en']
-   */
-  langs?: string[];
-
-  /**
-   * 生成的资源目录地址
-   *
-   * 默认为 './'
-   */
-  resourcePath?: string;
-
-  /**
-   * 语言包文件匹配正则表达式, 比如 '.*\\.tr$'
-   * 默认为 '.*\\.tr$'
-   */
-  test?: string;
-
-  /**
-   * 在那个文件夹下收集语言信息
-   *
-   *  默认为 `./src`
-   */
-  src?: string;
-
-  /**
-   * 忽略收集的文件夹
-   * 类型为正则表达式字符串
-   * 默认为 ['node_modules']
-   */
-  exclude?: string[];
-
-  /**
-   * Excel 的输出地址
-   *
-   * 默认为 `./bbt-lang/bbt.csv`
-   */
-  bbtExcelPath?: string;
-
-  /**
-   * 对比规则
-   *
-   * 默认为 `relaxed`
-   *
-   * - strict  如果基准值不一致 那么修改其基准值 并清空其他值
-   * - relaxed 直接进行合并操作
-   */
-  diffMode?: DiffModeEnum;
-
-  /**
-   * 输出文件的后缀
-   *
-   * 默认为 `tr`
-   */
-  outFileExtName?: string;
-
-  /**
-   * 自定义插件，用于实现更复杂的场景
-   */
-  plugins?: {
-    /**
-     * 自定义文件解析器
-     *
-     * 在读取文件时 调用`parse`方法将文件内容转换为`JSON`对象
-     * 在写入文件时 调用`stringify`方法将`JSON`对象写入到文件中
-     */
-    parser?: FileParser;
-
-    /**
-     * 自定义翻译
-     * @param record - 需要翻译的数据源
-     * @param target - 翻译的目标语言
-     * @param sourceLanguage - 数据源原本的语言
-     * @returns Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
-     */
-    translator: (
-      record: Record<string, string>,
-      target: string,
-      sourceLanguage: string
-    ) => Observable<TranslatedList<string>> | Promise<TranslatedList<string>>;
-  };
-}
-```
+[查看更多配置项](./docs/config.md)
 
 <br>
 <br>
@@ -187,15 +101,16 @@ module.exports = {
 
 收集所有的符合要求的语言包，并将信息提取到 `bbt.csv` 中，方便翻译人员进行翻译和校准。当然你也可以使用 `bbt translate` 自动翻译
 
-| name     | shortName | type     | description  | default           | required |
-| -------- | --------- | -------- | ------------ | ----------------- | -------- |
-| --config | -c        | `string` | 配置文件地址 | `./bbt.config.js` | `false`  |
+| name     | shortName | type      | description                  | default           | required |
+| -------- | --------- | --------- | ---------------------------- | ----------------- | -------- |
+| --config | -c        | `string`  | 配置文件地址                 | `./bbt.config.js` | `false`  |
+| --strict |           | `boolean` | 是否使用`strict`模式进行对比 | `false`           | `false`  |
 
 <br>
 <br>
 
 ```shell
-$ bbt collect -c ./config/bbt-config.json
+$ bbt collect
 ```
 
 <br>
@@ -215,9 +130,9 @@ $ npx bbt translate
 | --translator | -t        | `'google' \| 'deepl' \| 'chatgpt'` | 使用哪个翻译 API, 如果 bbt.config.js 自定义了 translator，则以配置为准          | `'google'`        | `false`  |
 | --proxy      | -p        | `string`                           | 正向代理地址 , 如果为空的话，会通过[环境变量进行获取](#环境变量)                | `-`               | `false`  |
 | --force      | -f        | `boolean`                          | 是否强制进行翻译, 默认情况下只会翻按需翻译(即无翻译内容时翻译)， **请谨慎开启** | `false`           | `false`  |
-| --model      | -         | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                             | `'gpt-3.5-turbo'` | `false`  |
+| --model      |           | `'gpt-4' \| 'gpt-3.5-turbo' `      | 使用`chatgpt`进行翻译时所使用的模型                                             | `'gpt-3.5-turbo'` | `false`  |
 | --api-key    | -k        | `string`                           | 翻译服务的`API Key `, 如果为空的话，会通过[环境变量进行获取](#环境变量)         | `-`               | `false`  |
-| --base-url   | -         | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)                 | `-`               | `false`  |
+| --base-url   |           | `string`                           | 反向代理地址, 如果为空的话，会通过[环境变量进行获取](#环境变量)                 | `-`               | `false`  |
 
 bbt 支持通过 Google、DeepL、ChatGPT 等方案进行初步的机器翻译。如果你想使用其他的翻译服务，可以通过自定义插件的方式进行扩展.
 
@@ -316,7 +231,7 @@ world 世界
 
 ```js
 module.exports = {
-  // other
+  // ...other
   plugins: {
     parser: {
       parse(content) {
@@ -372,6 +287,10 @@ module.exports = {
 <br>
 <br>
 <br>
+
+## FAQ
+
+[faq](./docs/faq.md)
 
 ## License
 
