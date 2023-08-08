@@ -1,12 +1,23 @@
-| 🚧 项目正处于开发中
+<br>
 
-# bbt
-
-<center>
+<p align="center">
   <img src="./logo.png" alt="bbt" />
-</center>
+</p>
+
+<p align="center">
+<a href="https://github.com/wakeadmin/bbt-tools" target="__blank"><img src="https://img.shields.io/github/last-commit/wakeadmin/bbt-tools?color=c977be" alt="GitHub last commit" /></a>
+<a href="https://github.com/wakeadmin/bbt-tools/issues" target="__blank"><img src="https://img.shields.io/github/issues/wakeadmin/bbt-tools?color=a38eed" alt="GitHub issues" /></a>
+<a href="https://github.com/wakeadmin/bbt-tools" target="__blank"><img alt="GitHub stars" src="https://img.shields.io/github/stars/wakeadmin/bbt-tools?style=social"></a>
+<a href="https://www.npmjs.com/package/@wakeadmin/bbt"><img src="https://img.shields.io/npm/v/@wakeadmin/bbt.svg?sanitize=true" alt="Version"></a>
+<a href="https://www.npmjs.com/package/@wakeadmin/bbt"><img src="https://img.shields.io/npm/dy/@wakeadmin/bbt" alt="NPM Download"></a>
+
+</p>
+
+<br>
 
 ---
+
+<br>
 
 `bbt` 是一个自动化的语言包管理和翻译工具。BBT 是 `Tower of Babel` 即巴别塔的意思，巴别塔是出自《圣经》的一则故事，故事发生在洪水之后，人类开始繁衍生息，他们决定建造一座高塔，塔顶能够触及天空，以此来彰显自己的力量。然而，上帝认为人类过于傲慢，于是让他们说不同的语言，使他们无法沟通，最终导致建塔工程的失败。
 
@@ -25,7 +36,7 @@
 
 `bbt`的工作流程如下：
 
-1. 收集所有的翻译内容 - (`npx bbt Collect`)
+1. 收集所有的翻译内容 - (`npx bbt collect`)
 2. 将翻译内容导出到 Excel(excel 文件或者 CSV) 表格中
 3. 将 excel 表格发送给翻译人员, 或者程序员通过翻译工具翻译 - (`npx bbt translate`)
 4. 翻译人员翻译或校准完成之后，将 excel 表格发送给开发人员
@@ -172,7 +183,7 @@ module.exports = {
 <br>
 <br>
 
-### bbt Collect
+### bbt collect
 
 收集所有的符合要求的语言包，并将信息提取到 `bbt.csv` 中，方便翻译人员进行翻译和校准。当然你也可以使用 `bbt translate` 自动翻译
 
@@ -184,7 +195,7 @@ module.exports = {
 <br>
 
 ```shell
-$ bbt Collect -c ./config/bbt-config.json
+$ bbt collect -c ./config/bbt-config.json
 ```
 
 <br>
