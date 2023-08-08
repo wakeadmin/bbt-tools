@@ -71,4 +71,60 @@ describe('diff tree', () => {
     expect(result.get('s')!.nodeType).toBe(KeyTreeNodeType.Node);
     expect(result.get('s.X')!.getValue().name).toBe('ue');
   });
+
+  test('delete', () => {
+    const treeA = source.clone();
+
+    treeA.add('s.delete', KeyTreeNodeType.Leaf).setValue({ name: 'delete' });
+
+    const result = diffTree(source, treeA);
+
+    expect(result.get('s.delete')).toBeNull();
+
+    expect(result.get('s.A')).toBeDefined();
+  });
+
+  test('大杂烩', () => {
+    const treeA = source.clone();
+    const treeB = source.clone();
+
+    const treeAKeys = ['Y1', 'Y2', 'Y3'];
+    const treeBKeys = ['U1', 'U2', 'U3'];
+    const commonKeys = ['I1', 'I2', 'I3'];
+
+    treeAKeys.forEach(key => treeA.add(`s.${key}`, KeyTreeNodeType.Leaf).setValue({ name: key }));
+    treeBKeys.forEach(key => treeB.add(`s.${key}`, KeyTreeNodeType.Leaf).setValue({ name: key }));
+    commonKeys.forEach(key => {
+      treeA.add(`s.${key}`, KeyTreeNodeType.Leaf).setValue({ name: key + 'A' });
+      treeB.add(`s.${key}`, KeyTreeNodeType.Leaf).setValue({ name: key + 'B' });
+    });
+
+    const resultA = diffTree(treeA, treeB);
+
+    treeAKeys.forEach(key => {
+      expect(resultA.get(`s.${key}`)!.getValue()).toEqual({ name: key });
+    });
+
+    treeBKeys.forEach(key => {
+      expect(resultA.get(`s.${key}`)).toBeNull();
+    });
+
+    commonKeys.forEach(key => {
+      expect(resultA.get(`s.${key}`)!.getValue()).toEqual({ name: key + 'A' });
+    });
+
+    const resultB = diffTree(treeB, treeA);
+
+    treeAKeys.forEach(key => {
+      expect(resultB.get(`s.${key}`)).toBeNull();
+    });
+
+    treeBKeys.forEach(key => {
+      expect(resultB.get(`s.${key}`)!.getValue()).toEqual({ name: key });
+    });
+
+    commonKeys.forEach(key => {
+      expect(resultB.get(`s.${key}`)!.getValue()).toEqual({ name: key + 'B' });
+    });
+  });
 });

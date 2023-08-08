@@ -1,4 +1,4 @@
-import { difference, intersection } from 'lodash/fp';
+import { intersection } from 'lodash/fp';
 import { KeyTree, KeyTreeNode } from './keyTree';
 
 export const enum DiffModeEnum {
@@ -6,40 +6,22 @@ export const enum DiffModeEnum {
   'Relaxed' = 'relaxed',
 }
 
-const DELETEKEY = '@remove@';
-
 export type DiffMutateFn<T extends {}> = (oldValue: T, newValue: T) => T;
 
-function patchKeys<T extends {}>(
-  newNode: KeyTreeNode<T>,
-  oldNode: KeyTreeNode<T>
-): { deleteKeys: string[]; addKeys: string[]; modifierKeys: string[] } {
-  const { deleteKeys, newChildrenKeys } = newNode.children
-    .map(item => item.key)
-    .reduce<{ deleteKeys: string[]; newChildrenKeys: string[] }>(
-      (obj, key) => {
-        if (key.endsWith(DELETEKEY)) {
-          obj.deleteKeys.push(key.slice(0, key.length - DELETEKEY.length));
-        } else {
-          obj.newChildrenKeys.push(key);
-        }
-        return obj;
-      },
-      { deleteKeys: [], newChildrenKeys: [] }
-    );
+function patchKeys<T extends {}>(newNode: KeyTreeNode<T>, oldNode: KeyTreeNode<T>): { modifierKeys: string[] } {
+  const newChildrenKeys = newNode.children.map(item => item.key);
 
   const oldChildrenKeys = oldNode.children.map(item => item.key);
 
-  const addKeys = difference(newChildrenKeys)(oldChildrenKeys);
-
   const modifierKeys = intersection(newChildrenKeys)(oldChildrenKeys);
-  return { deleteKeys, addKeys, modifierKeys };
+
+  return { modifierKeys };
 }
 
 /**
  * 两个节点进行对比
  *
- * 并对旧的节点进行**更新**
+ * 并对新的节点进行**更新**
  *
  * @param newNode
  * @param oldNode
@@ -54,29 +36,32 @@ export function assignNode<T extends {}>(
     return newNode.clone();
   }
 
-  const { deleteKeys, addKeys, modifierKeys } = patchKeys<T>(newNode, oldNode);
+  const { modifierKeys } = patchKeys<T>(newNode, oldNode);
 
-  oldNode.mutate(oldValue => mutateFn(oldValue, newNode.getValue()));
-
-  deleteKeys.forEach(key => newNode.delete(key));
-
-  addKeys.forEach(key => {
-    oldNode.addChild(key, newNode.getChild(key)!.clone());
-  });
+  newNode.mutate(newValue => mutateFn(oldNode.getValue(), newValue));
 
   modifierKeys.forEach(key => {
-    oldNode.setChild(key, assignNode(newNode.getChild(key)!, oldNode.getChild(key)!, mutateFn));
+    newNode.setChild(key, assignNode(newNode.getChild(key)!, oldNode.getChild(key)!, mutateFn));
   });
 
-  return oldNode;
+  return newNode;
 }
 
+/**
+ * 两棵树进行对比
+ *
+ * 以新的为基准 将旧树的值和新的值进行对应的修改
+ *
+ * @param newNode
+ * @param oldNode
+ * @returns
+ */
 export function diffTree<T extends {}>(
   newTree: KeyTree<T>,
   oldTree: KeyTree<T>,
   mutateFn: DiffMutateFn<T> = (oldValue, newValue) => newValue
 ): KeyTree<T> {
-  const tree = oldTree.clone();
-  assignNode(newTree.root, tree.root, mutateFn);
+  const tree = newTree.clone();
+  assignNode(tree.root, oldTree.root, mutateFn);
   return tree;
 }
