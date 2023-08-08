@@ -25,7 +25,7 @@ import {
   TranslatorAlternatives,
   TranslatorListEnum,
 } from '../translator';
-import { KeyTree } from '../utils';
+import { KeyTree, warn } from '../utils';
 import { IBBTValue, getExcelCtor } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
 
@@ -245,7 +245,7 @@ export class TranslateAction extends BaseAction {
     switch (provider) {
       case TranslatorListEnum.Google: {
         if (apiKey === FREE_GOOGLE_KEY) {
-          console.warn('你正在使用免费的 Google 翻译服务， 因此速度会比较慢以及翻译结果可能不太准确');
+          warn('你正在使用免费的 Google 翻译服务， 因此速度会比较慢以及翻译结果可能不太准确');
           return new FreeGoogleTranslator(config);
         }
         return new GoogleTranslator(apiKey, config);

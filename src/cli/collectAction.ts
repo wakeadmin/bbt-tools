@@ -14,6 +14,7 @@ import {
   KeyTreeNode,
   KeyTreeNodeType,
   readFileAsync,
+  warn,
 } from '../utils';
 
 import { getExcelCtor, IBBTValue } from '../utils/treeExcel';
@@ -104,6 +105,8 @@ export class CollectAction extends BaseAction {
       excel.save(this.config.bbtExcelPath);
 
       spinner.succeed('success');
+
+      this.checkNullValue(tree);
     } catch (err) {
       console.error(err);
       spinner.stop();
@@ -200,5 +203,38 @@ export class CollectAction extends BaseAction {
   private needDiff(): boolean {
     const { bbtExcelPath } = this.config;
     return existsSync(bbtExcelPath);
+  }
+
+  private checkNullValue(tree: KeyTree<IBBTValue>): void {
+    const nullValueNodes = this.getNullValueNodes(tree);
+    const lang = this.config.langs[0];
+
+    if (nullValueNodes.length > 0) {
+      warn(`** 以下节点基准语言值为空 **`);
+      for (const node of nullValueNodes) {
+        const value = node.getValue();
+        warn(`path: ${value.path}; key: ${value.key}; ${lang}: ${value[lang]}`);
+      }
+    }
+  }
+
+  private getNullValueNodes(tree: KeyTree<IBBTValue>): KeyTreeNode<IBBTValue>[] {
+    const lang = this.config.langs[0];
+
+    const nullValueNodes: KeyTreeNode<IBBTValue>[] = [];
+
+    tree.visitor(node => {
+      if (!node.isLeaf()) {
+        return;
+      }
+
+      const value = node.getValue()[lang];
+
+      // eslint-disable-next-line eqeqeq
+      if (value === '' || value == undefined) {
+        nullValueNodes.push(node);
+      }
+    });
+    return nullValueNodes;
   }
 }
