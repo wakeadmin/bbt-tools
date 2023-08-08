@@ -23,7 +23,7 @@
 - `zh` -> `请输入文本`
 - `en` -> `please enter`
 
-除此之外，两者没有任何不同。即如果我们不修改`zh`的值，而是将`en`的值修改为`please enter the text`，那么无论是那种对比模式，都会得到以下结果：
+除此之外，两者没有任何不同。如果我们不修改`zh`的值，而是将`en`的值修改为`please enter the text`，那么无论是哪种对比模式，都会得到以下结果：
 
 - `zh` -> `请输入`
 - `en` -> `please enter the text`

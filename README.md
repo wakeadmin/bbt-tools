@@ -112,7 +112,7 @@ module.exports = {
 <br>
 
 ```shell
-$ bbt collect
+$ npx bbt collect
 ```
 
 <br>
