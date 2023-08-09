@@ -81,6 +81,7 @@ export abstract class BaseTranslator extends TranslatorAdapter {
 
   translate(record: Record<string, string>, target: string, sourceLanguage: string): Observable<TranslatedList> {
     return from(Object.entries(record)).pipe(
+      filter(([_, value]) => !!value),
       map(([key, value]) => {
         const str = this.replaceInterpolation(key, value);
         return [key, str];
