@@ -14,9 +14,47 @@ describe('keyTree 测试', () => {
     expect(tree.has('S.AAA')).toBeTruthy();
     expect(tree.get('S.AAA')?.key).toBe('AAA');
 
-    expect(() => tree.add('S.S1.S2.SS', KeyTreeNodeType.Leaf, false)).toThrow();
     tree.add('Y.Y1.Y2.YS', KeyTreeNodeType.Leaf);
     expect(tree.has('Y.Y1.Y2.YS')).toBeTruthy();
+
+    const keys = ['p', 'p-p', '__pp--pp__', '$$o--c$', '--$/2331__=', '$$%%s_'];
+    tree.add(keys.join('.'));
+
+    let prefix = '';
+    for (var i = 0; i < keys.length; i++) {
+      const key = prefix ? `${prefix}.${keys[i]}` : keys[i];
+
+      expect(tree.has(key)).toBeTruthy();
+      expect(tree.get(key)?.key).toBe(keys[i]);
+
+      prefix = key;
+    }
+  });
+
+  test('新增直接子节点', () => {
+    expect(() => tree.add('S.SS.SSS.SSSS.SSSSS', KeyTreeNodeType.Leaf, false)).toThrowError();
+
+    tree.add('s', KeyTreeNodeType.Node);
+
+    tree.add('S.AAA');
+
+    expect(tree.has('S.AAA')).toBeTruthy();
+
+    expect(tree.get('S.AAA')?.key).toBe('AAA');
+
+    const keys = ['p', 'p-p', '__pp--pp__', '$$o--c$', '--$/2331__=', '$$%%s_'];
+
+    let prefix = '';
+    for (var i = 0; i < keys.length; i++) {
+      const key = prefix ? `${prefix}.${keys[i]}` : keys[i];
+      tree.add(key, KeyTreeNodeType.Node);
+      
+      expect(tree.has(key)).toBeTruthy();
+      expect(tree.get(key)?.key).toBe(keys[i]);
+
+      prefix = key;
+    }
+
   });
 
   test('key检测', () => {

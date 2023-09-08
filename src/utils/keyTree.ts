@@ -326,7 +326,7 @@ export class KeyTree<T extends {}> {
     if (str.startsWith('.') || str.endsWith('.')) {
       throw new Error(`${key} 格式不正确，请确保是以'.'符号分割以及非空字符`);
     }
-    const [source, parentKey, childKey] = str.split(/^([\w-$_@.:?]+)\.([\w-$_@.:?]+)$/);
+    const [source, parentKey, childKey] = str.split(/^(.+)\.([^.]+)$/);
 
     if (source === str) {
       return {
