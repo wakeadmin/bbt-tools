@@ -123,11 +123,6 @@ export class WriteAction extends BaseAction {
     }
   }
 
-  /**
-   * 尝试将str转换成 Array
-   * @param record
-   * @returns
-   */
   private createRecord(record: Record<string, any>): Record<string, any> {
     return this.deepSortRecord(record);
   }
