@@ -157,7 +157,7 @@ export class BBTExcel<T extends IBBTValue = any> {
 
     excel.create(langs);
 
-    tree.visitor(node => {
+    tree.sortedVisitor(node => {
       if (node.nodeType === KeyTreeNodeType.Leaf) {
         excel.addRow(node.getValue());
       }
