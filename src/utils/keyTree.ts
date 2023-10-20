@@ -36,6 +36,7 @@ export const enum KeyTreeNodeType {
   'Root',
 }
 
+type KeyTreeCompareFn<T extends {}> = (a: KeyTreeNode<T>, b: KeyTreeNode<T>) => number;
 export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
   private allowAddChild: boolean;
   private child: Map<string, KeyTreeNode<T>> = new Map();
@@ -183,12 +184,12 @@ export class KeyTreeNode<T extends {}> implements IKeyTreeNode<T> {
     this.child.forEach(node => node.visitor(fn));
   }
 
-  sortedVisitor(fn: (node: KeyTreeNode<T>) => void): void {
+  sortedVisitor(fn: (node: KeyTreeNode<T>) => void, compare: KeyTreeCompareFn<T>): void {
     fn(this);
     if (this.isLeaf()) {
       return;
     }
-    this.children.sort((a, b) => (a > b ? 1 : -1)).forEach(child => child.sortedVisitor(fn));
+    this.children.sort(compare).forEach(child => child.sortedVisitor(fn, compare));
   }
 
   clone() {
@@ -282,12 +283,13 @@ export class KeyTree<T extends {}> {
     this.children.forEach(child => child.visitor(fn));
   }
 
-  sortedVisitor(fn: (node: KeyTreeNode<T>) => void): void {
-    this.rootNode.children
-      .sort((a, b) => {
-        return a.key > b.key ? 1 : -1;
-      })
-      .forEach(child => child.sortedVisitor(fn));
+  sortedVisitor(
+    fn: (node: KeyTreeNode<T>) => void,
+    compareFn?: (a: KeyTreeNode<T>, b: KeyTreeNode<T>) => number
+  ): void {
+    const compare = compareFn || ((a: KeyTreeNode<T>, b: KeyTreeNode<T>) => (a.key > b.key ? 1 : -1));
+
+    this.rootNode.children.sort(compare).forEach(child => child.sortedVisitor(fn, compare));
   }
 
   clone() {

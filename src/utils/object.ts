@@ -1,43 +1,4 @@
-import { LangKeyExistedError } from '../error';
 import { ArrayLikeReg } from './parser';
-
-export function flatObject(
-  obj: Record<string, any>,
-  options: {
-    prefix?: string;
-    path?: string;
-  } = {}
-): Record<string, string> {
-  const list = [
-    {
-      data: obj,
-      prefix: options.prefix,
-    },
-  ];
-  const result: Record<string, string> = {};
-
-  while (true) {
-    const { data, prefix: objectPrefix } = list.shift() || {};
-    if (!data) {
-      return result;
-    }
-
-    for (const [key, value] of Object.entries(data)) {
-      const prefix = `${objectPrefix ? objectPrefix + '.' : ''}` + key;
-      if (isObject(value)) {
-        list.push({
-          data: value,
-          prefix,
-        });
-      } else {
-        if (result[prefix]) {
-          throw new LangKeyExistedError(prefix, options.path as string, options.path as string);
-        }
-        result[prefix] = value;
-      }
-    }
-  }
-}
 
 /**
  * 转换字符串为数组
@@ -72,6 +33,7 @@ export function strToArray(str: string): string | any[] {
 export function isObject(value: any): Boolean {
   return Object.prototype.toString.call(value) === '[object Object]';
 }
+
 
 export function setMapValueIfNeed<K, V>(map: Map<K, V>, key: K, value: V): void {
   if (map.has(key)) {

@@ -20,6 +20,28 @@ export class BBTExcel<T extends IBBTValue = any> {
   protected ready = false;
   protected columnMap: Record<keyof T, number> = {} as any;
 
+  static fromTree<K extends IBBTValue>(tree: KeyTree<any>, langs: string[]): BBTExcel<K> {
+    const excel = new this<K>();
+
+    excel.create(langs);
+
+    tree.sortedVisitor(node => {
+      if (node.nodeType === KeyTreeNodeType.Leaf) {
+        excel.addRow(node.getValue());
+      }
+    });
+
+    return excel;
+  }
+
+  async save(file: string): Promise<void> {
+    this.checkReady();
+
+    fse.ensureDirSync(dirname(file));
+
+    await this.workBook.xlsx.writeFile(file);
+  }
+
   async readFile(file: string) {
     if (this.ready) {
       throw new Error('BBTExcel has been initialized');
@@ -55,37 +77,6 @@ export class BBTExcel<T extends IBBTValue = any> {
     this.ready = true;
   }
 
-  protected initColumns(langSet: Set<string>) {
-    const columns = [
-      {
-        header: PATH_KEY,
-        key: PATH_KEY,
-        width: 30,
-      },
-      {
-        header: KEY_KEY,
-        key: KEY_KEY,
-        width: 20,
-      },
-    ].concat(
-      [...langSet.values()].map(lang => ({
-        header: lang,
-        key: lang,
-        width: 65,
-      }))
-    );
-    this.workSheet.columns = columns;
-    columns.forEach(({ key }, i) => {
-      this.columnMap[key as keyof T] = i + 1;
-    });
-  }
-
-  protected checkReady() {
-    if (!this.ready) {
-      throw new Error('Please call "create" or "readFile" to initialize');
-    }
-  }
-
   getHeader(): Exclude<keyof T, Symbol | Number>[] {
     this.checkReady();
     return this.workSheet.columns.map(item => item.key) as Exclude<keyof T, Symbol | Number>[];
@@ -94,25 +85,6 @@ export class BBTExcel<T extends IBBTValue = any> {
   eachRow(fn: (row: Row, rowNumber: number) => void): void {
     this.checkReady();
     this.workSheet.eachRow((row, i) => fn(row, i));
-  }
-
-  async save(file: string): Promise<void> {
-    this.checkReady();
-
-    fse.ensureDirSync(dirname(file));
-
-    await this.workBook.xlsx.writeFile(file);
-  }
-
-  private getRowValue(row: Row, key: string): string {
-    const index = this.columnMap[key];
-    const value = (row.values as any)[index] as CellValue;
-
-    if (typeof value === 'object') {
-      throw new Error(`value is Object -> rows: ${row.number}; key: ${key} `);
-    }
-
-    return value as string;
   }
 
   toTree(): KeyTree<T> {
@@ -152,18 +124,46 @@ export class BBTExcel<T extends IBBTValue = any> {
     this.workSheet.addRow(value);
   }
 
-  static fromTree<K extends IBBTValue>(tree: KeyTree<any>, langs: string[]): BBTExcel<K> {
-    const excel = new this<K>();
-
-    excel.create(langs);
-
-    tree.sortedVisitor(node => {
-      if (node.nodeType === KeyTreeNodeType.Leaf) {
-        excel.addRow(node.getValue());
-      }
+  protected initColumns(langSet: Set<string>) {
+    const columns = [
+      {
+        header: PATH_KEY,
+        key: PATH_KEY,
+        width: 30,
+      },
+      {
+        header: KEY_KEY,
+        key: KEY_KEY,
+        width: 20,
+      },
+    ].concat(
+      [...langSet.values()].map(lang => ({
+        header: lang,
+        key: lang,
+        width: 65,
+      }))
+    );
+    this.workSheet.columns = columns;
+    columns.forEach(({ key }, i) => {
+      this.columnMap[key as keyof T] = i + 1;
     });
+  }
 
-    return excel;
+  protected checkReady() {
+    if (!this.ready) {
+      throw new Error('Please call "create" or "readFile" to initialize');
+    }
+  }
+
+  private getRowValue(row: Row, key: string): string {
+    const index = this.columnMap[key];
+    const value = (row.values as any)[index] as CellValue;
+
+    if (typeof value === 'object') {
+      throw new Error(`value is Object -> rows: ${row.number}; key: ${key} `);
+    }
+
+    return value as string;
   }
 }
 

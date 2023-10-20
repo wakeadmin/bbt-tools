@@ -10,7 +10,7 @@ class TestAction extends CollectAction {
     return super.createDiffer(mode);
   }
 }
-const source = new KeyTree<{ key: string; path: string; zh: string; en: string }>();
+const source = new KeyTree<{ key: string; path: string; zh: string; en: string } >();
 
 source.add('s', KeyTreeNodeType.Node);
 source.add('s.A', KeyTreeNodeType.Leaf).setValue({ key: 's.A', path: './temp', zh: '雨', en: 'rain' });

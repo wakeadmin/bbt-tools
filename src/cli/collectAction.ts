@@ -102,6 +102,7 @@ export class CollectAction extends BaseAction {
       }
 
       const excel = getExcelCtor(this.config.bbtExcelPath).fromTree(tree, this.config.langs);
+      
       excel.save(this.config.bbtExcelPath);
 
       spinner.succeed('success');
@@ -213,6 +214,8 @@ export class CollectAction extends BaseAction {
       return;
     }
     const errorMap: Map<string, string[]> = new Map();
+
+
     for (const node of nullValueNodes) {
       const value = node.getValue();
       const path = value.path;
@@ -221,15 +224,15 @@ export class CollectAction extends BaseAction {
       } else {
         errorMap.set(path, [value.key]);
       }
-
-      warn(`** 以下节点基准语言值为空 **`);
-      warn(`** 请写入对应的值，如确认为空请忽略本提示 **`);
-
-      errorMap.forEach((values, file) => {
-        warn(`文件 ${file}/${lang}`);
-        values.forEach(key => warn(`  ${key}`));
-      });
     }
+
+    warn(`** 以下节点基准语言值为空 **`);
+    warn(`** 请写入对应的值，如确认为空请忽略本提示 **`);
+
+    errorMap.forEach((values, file) => {
+      warn(`\n文件 ${file}/${lang}`);
+      values.forEach(key => warn(`  ${key}`));
+    });
   }
 
   private getNullValueNodes(tree: KeyTree<IBBTValue>): KeyTreeNode<IBBTValue>[] {
