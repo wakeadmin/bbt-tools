@@ -1,5 +1,12 @@
 # @wakeadmin/bbt
 
+## 0.1.6
+
+### Patch Changes
+
+- feat: 允许自定义排序
+- fix: 修复警告信息会多次显示的问题
+
 ## 0.1.5
 
 ### Patch Changes
