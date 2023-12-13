@@ -1,5 +1,12 @@
 # @wakeadmin/bbt
 
+## 0.2.0
+
+### Minor Changes
+
+- feat: 新增钩子函数, 并允许用户自定义
+- feat: 现在在基准语言文件中删除`key`, 将会被认定为删除该条记录
+
 ## 0.1.7
 
 ### Patch Changes
