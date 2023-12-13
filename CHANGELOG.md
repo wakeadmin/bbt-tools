@@ -1,5 +1,11 @@
 # @wakeadmin/bbt
 
+## 0.1.7
+
+### Patch Changes
+
+- fix: 修复值为数字时无法正常写入文件的问题
+
 ## 0.1.6
 
 ### Patch Changes
