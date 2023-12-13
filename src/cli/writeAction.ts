@@ -140,7 +140,9 @@ export class WriteAction extends BaseAction {
             ? strToArray(originalValue)
             : Array.isArray(originalValue)
             ? originalValue
-            : this.deepSortRecord(originalValue);
+            : typeof originalValue === 'object'
+            ? this.deepSortRecord(originalValue)
+            : originalValue;
 
         obj[key] = value;
         return obj;

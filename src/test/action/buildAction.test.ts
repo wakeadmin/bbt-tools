@@ -13,10 +13,11 @@ const data = [
   ['sss', 'vvva', '微幽兰之芳蔼兮，步踟蹰于山隅', ''],
   ['sss', 'vvvb', `SSS's`, ''],
   ['sss', 'CM', `['足往心留。遗情想像', '思绵绵而增慕。夜耿耿而不寐']`, ''],
+  ['sss', 'S', `6个`, 6],
 ];
 
 const zhData = data.reduce((obj, item) => {
-  setWith(obj, item[1], strToArray(item[2]));
+  setWith(obj, item[1], strToArray(item[2] as any));
   return obj;
 }, {} as Record<string, string>);
 

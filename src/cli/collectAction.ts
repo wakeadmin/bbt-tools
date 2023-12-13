@@ -22,7 +22,7 @@ import { BaseAction } from './baseAction';
 import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
 
 function createNode(value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) {
-  const nodeType = typeof value === 'string' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
+  const nodeType = typeof value === 'string' || typeof value === 'number' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
   return parent.addChild(key, nodeType);
 }
 
@@ -38,7 +38,7 @@ function setNodeValue(
   const { key, path, lang, value } = obj;
   let node = parent.getChild(key) || createNode(value, parent, key);
 
-  if (typeof value === 'string' || Array.isArray(value)) {
+  if (typeof value === 'string' || typeof value === 'number' || Array.isArray(value)) {
     node.assign({
       path,
       [lang]: value,
