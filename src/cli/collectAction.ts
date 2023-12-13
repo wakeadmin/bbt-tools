@@ -13,16 +13,19 @@ import {
   KeyTree,
   KeyTreeNode,
   KeyTreeNodeType,
-  readFileAsync,
-  warn,
+  readFileAsync
 } from '../utils';
 
+import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
+import { BBTPlugins } from '../plugins';
 import { getExcelCtor, IBBTValue } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
-import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
 
 function createNode(value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) {
-  const nodeType = typeof value === 'string' || typeof value === 'number' || Array.isArray(value) ? KeyTreeNodeType.Leaf : KeyTreeNodeType.Node;
+  const nodeType =
+    typeof value === 'string' || typeof value === 'number' || Array.isArray(value)
+      ? KeyTreeNodeType.Leaf
+      : KeyTreeNodeType.Node;
   return parent.addChild(key, nodeType);
 }
 
@@ -37,6 +40,9 @@ function setNodeValue(
 ) {
   const { key, path, lang, value } = obj;
   let node = parent.getChild(key) || createNode(value, parent, key);
+
+  // TODO
+  // 是否强制把 number 转成 string
 
   if (typeof value === 'string' || typeof value === 'number' || Array.isArray(value)) {
     node.assign({
@@ -90,6 +96,8 @@ export class CollectAction extends BaseAction {
 
       let tree: KeyTree<IBBTValue>;
 
+      BBTPlugins.runHooks('collect::before_diff', newTree, this);
+
       if (this.needDiff()) {
         spinner.text = '正在读取集合文件';
 
@@ -102,12 +110,12 @@ export class CollectAction extends BaseAction {
       }
 
       const excel = getExcelCtor(this.config.bbtExcelPath).fromTree(tree, this.config.langs);
-      
+
       excel.save(this.config.bbtExcelPath);
 
       spinner.succeed('success');
 
-      this.checkNullValue(tree);
+      BBTPlugins.runHooks('collect::completed', tree, this);
     } catch (err) {
       console.error(err);
       spinner.stop();
@@ -204,54 +212,5 @@ export class CollectAction extends BaseAction {
   private needDiff(): boolean {
     const { bbtExcelPath } = this.config;
     return existsSync(bbtExcelPath);
-  }
-
-  private checkNullValue(tree: KeyTree<IBBTValue>): void {
-    const nullValueNodes = this.getNullValueNodes(tree);
-    const lang = this.config.langs[0];
-
-    if (nullValueNodes.length === 0) {
-      return;
-    }
-    const errorMap: Map<string, string[]> = new Map();
-
-
-    for (const node of nullValueNodes) {
-      const value = node.getValue();
-      const path = value.path;
-      if (errorMap.has(path)) {
-        errorMap.get(path)!.push(value.key);
-      } else {
-        errorMap.set(path, [value.key]);
-      }
-    }
-
-    warn(`** 以下节点基准语言值为空 **`);
-    warn(`** 请写入对应的值，如确认为空请忽略本提示 **`);
-
-    errorMap.forEach((values, file) => {
-      warn(`\n文件 ${file}/${lang}`);
-      values.forEach(key => warn(`  ${key}`));
-    });
-  }
-
-  private getNullValueNodes(tree: KeyTree<IBBTValue>): KeyTreeNode<IBBTValue>[] {
-    const lang = this.config.langs[0];
-
-    const nullValueNodes: KeyTreeNode<IBBTValue>[] = [];
-
-    tree.visitor(node => {
-      if (!node.isLeaf()) {
-        return;
-      }
-
-      const value = node.getValue()[lang];
-
-      // eslint-disable-next-line eqeqeq
-      if (value === '' || value == undefined) {
-        nullValueNodes.push(node);
-      }
-    });
-    return nullValueNodes;
   }
 }

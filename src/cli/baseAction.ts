@@ -2,10 +2,11 @@ import { CommandLineAction, CommandLineStringParameter } from '@rushstack/ts-com
 import path from 'path';
 import { BBTExcel, FileParser, IBBTValue, JSONFileParser, getExcel } from '../utils';
 import { IBBTProjectConfig, getDefaultProjectConfig, getProjectConfig } from '../utils/config';
+import { BBTPlugins } from '../plugins';
 
 export abstract class BaseAction extends CommandLineAction {
   protected configPathParameter!: CommandLineStringParameter;
-  protected config!: IBBTProjectConfig;
+  public  config!: IBBTProjectConfig;
   protected readonly basePath = process.cwd();
   protected parser!: FileParser;
 
@@ -22,6 +23,9 @@ export abstract class BaseAction extends CommandLineAction {
   protected async onExecute(): Promise<void> {
     this.config = this.readConfig();
     this.parser = this.getParser();
+    if(this.config.plugins){
+      BBTPlugins.registry(this.config.plugins);
+    }
   }
 
   private readConfig(): IBBTProjectConfig {

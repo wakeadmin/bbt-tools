@@ -6,6 +6,9 @@ import { ExistedFileError, NotFileError } from '../error';
 import { TranslatedList } from '../translator';
 import { DiffModeEnum } from './diffTree';
 import { FileParser } from './parser';
+import { KeyTree } from './keyTree';
+import { IBBTValue } from './treeExcel';
+import { type BaseAction } from '../cli/baseAction';
 
 export interface IBBTProjectConfig {
   /**
@@ -81,6 +84,12 @@ export interface IBBTProjectConfig {
       target: string,
       sourceLanguage: string
     ) => Observable<TranslatedList> | Promise<TranslatedList>;
+
+    hooks?: {
+      "collect::completed"?: (tree:KeyTree<IBBTValue>, instance: BaseAction) => void;
+      "collect::before_diff"?: (tree:KeyTree<IBBTValue>, instance: BaseAction) => void;
+      "collect::after_diff"?: (tree:KeyTree<IBBTValue>, instance: BaseAction) => void;
+    }
   };
 }
 
