@@ -1,5 +1,12 @@
 # @wakeadmin/bbt
 
+## 0.2.1
+
+### Patch Changes
+
+- feat: 现在会强制将`Number`类型转成`String`
+
+
 ## 0.2.0
 
 ### Minor Changes

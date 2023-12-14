@@ -20,10 +20,11 @@ import { CommandLineFlagParameter } from '@rushstack/ts-command-line';
 import { BBTPlugins } from '../plugins';
 import { getExcelCtor, IBBTValue } from '../utils/treeExcel';
 import { BaseAction } from './baseAction';
+import { toString } from 'lodash/fp';
 
 function createNode(value: string | any[] | Record<string, any>, parent: KeyTreeNode<IBBTValue>, key: string) {
   const nodeType =
-    typeof value === 'string' || typeof value === 'number' || Array.isArray(value)
+    typeof value === 'string' || Array.isArray(value)
       ? KeyTreeNodeType.Leaf
       : KeyTreeNodeType.Node;
   return parent.addChild(key, nodeType);
@@ -38,13 +39,13 @@ function setNodeValue(
     value: Record<string, any> | string | any[];
   }
 ) {
-  const { key, path, lang, value } = obj;
+  const { key, path, lang, value: originValue } = obj;
+  const value = typeof originValue === 'number' ? toString(originValue) : originValue;
+  
   let node = parent.getChild(key) || createNode(value, parent, key);
 
-  // TODO
-  // 是否强制把 number 转成 string
 
-  if (typeof value === 'string' || typeof value === 'number' || Array.isArray(value)) {
+  if (typeof value === 'string' || Array.isArray(value)) {
     node.assign({
       path,
       [lang]: value,

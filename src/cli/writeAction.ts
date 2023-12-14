@@ -4,6 +4,7 @@ import ora from 'ora';
 import path from 'path';
 import { strToArray, IBBTValue } from '../utils';
 import { BaseAction } from './baseAction';
+import { toString } from 'lodash/fp';
 
 /**
  *
@@ -135,17 +136,20 @@ export class WriteAction extends BaseAction {
       .sort(compareFn)
       .reduce<Record<string, any>>((obj, key) => {
         const originalValue = record[key] ?? '';
-        const value =
-          typeof originalValue === 'string'
-            ? strToArray(originalValue)
-            : Array.isArray(originalValue)
-            ? originalValue
-            : typeof originalValue === 'object'
-            ? this.deepSortRecord(originalValue)
-            : originalValue;
-
+        const value = this.parseValue(originalValue);
         obj[key] = value;
         return obj;
       }, {});
+  }
+
+  private parseValue(originalValue: any) {
+    switch (typeof originalValue) {
+      case 'string':
+        return strToArray(originalValue);
+      case 'object':
+        return this.deepSortRecord(originalValue);
+      default:
+        return toString(originalValue);
+    }
   }
 }

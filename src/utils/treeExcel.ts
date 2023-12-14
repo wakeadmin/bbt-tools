@@ -2,6 +2,7 @@ import { CellValue, Row, Workbook, Worksheet } from 'exceljs';
 import fse from 'fs-extra';
 import { dirname, extname } from 'path';
 import { KeyTree, KeyTreeNodeType } from './keyTree';
+import { toString } from 'lodash/fp';
 
 const SHEET_NAME = 'BBT';
 
@@ -163,7 +164,7 @@ export class BBTExcel<T extends IBBTValue = any> {
       throw new Error(`value is Object -> rows: ${row.number}; key: ${key} `);
     }
 
-    return value as string;
+    return  toString(value);
   }
 }
 

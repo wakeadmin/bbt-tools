@@ -3,8 +3,12 @@ import { setWith } from 'lodash';
 import path from 'path';
 import { BBTToolCommandLineParser } from '../../cli/commandLine';
 import { BBTExcel, strToArray } from '../../utils';
+import { toString } from 'lodash/fp';
+import { sleep } from '../test-helper';
 
 const parser: BBTToolCommandLineParser = new BBTToolCommandLineParser();
+
+
 
 const data = [
   ['sss', 'vvv', `丹唇外朗，皓齿内鲜`, ''],
@@ -22,13 +26,15 @@ const zhData = data.reduce((obj, item) => {
 }, {} as Record<string, string>);
 
 const enData = data.reduce((obj, item) => {
-  setWith(obj, item[1], item[3]);
+  setWith(obj, item[1], typeof item[3] === 'number' ? toString(item[3]) : item[3]);
   return obj;
 }, {} as Record<string, string>);
 
 const langs = ['zh', 'en'];
 
-const outBasePath = path.join(__dirname, './temp/tr');
+const dirPath = "./temp/write";
+
+const outBasePath = path.join(__dirname, `${dirPath}/tr`);
 
 function createExcelFileIfNeed(file: string): Promise<void> {
   if (!fse.existsSync(file)) {
@@ -42,7 +48,7 @@ function createExcelFileIfNeed(file: string): Promise<void> {
 
 async function createExcel(): Promise<void> {
   const excel = new BBTExcel();
-  const filePath = path.join(__dirname, './temp/excel/bbt.xlsx');
+  const filePath = path.join(__dirname, `${dirPath}/excel/bbt.xlsx`);
   await createExcelFileIfNeed(filePath);
   await excel.readFile(filePath);
   data.forEach(row => {
@@ -58,28 +64,22 @@ function getFileValue(path: string): Record<string, string> {
 
 describe('build action', () => {
   beforeEach(() => {
-    fse.emptyDirSync(path.join(__dirname, './temp/excel'));
+    fse.emptyDirSync(path.join(__dirname, `${dirPath}/excel`));
     fse.emptyDirSync(path.join(outBasePath, './sss'));
   });
   afterEach(() => {
-    fse.emptyDirSync(path.join(__dirname, './temp/excel'));
+    fse.emptyDirSync(path.join(__dirname, `${dirPath}/excel`));
     fse.emptyDirSync(path.join(outBasePath, './sss'));
   });
 
   test('还原tr', async () => {
     await createExcel();
     await sleep(200);
-    await parser.execute(['write', '-c', path.join(__dirname, './temp/config.js')]);
+    const a =  path.join(__dirname, `${dirPath}/config.js`);
+    await parser.execute(['write', '-c', path.join(__dirname, `${dirPath}/config.js`)]);
     await sleep(200);
     expect(getFileValue(path.join(outBasePath, './sss/zh.tr'))).toEqual(zhData);
     expect(getFileValue(path.join(outBasePath, './sss/en.tr'))).toEqual(enData);
   });
 });
 
-async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve =>
-    setTimeout(() => {
-      resolve();
-    }, ms)
-  );
-}
