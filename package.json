@@ -1,6 +1,6 @@
 {
   "name": "@wakeadmin/bbt",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "用来维护多语言信息的工具",
   "bin": {
     "bbt": "./bin/bbt"

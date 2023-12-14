@@ -1,5 +1,12 @@
 # @wakeadmin/bbt
 
+## 0.2.2
+
+### Patch Changes
+
+- fix: 修复环境变量值错误的问题
+
+
 ## 0.2.1
 
 ### Patch Changes
