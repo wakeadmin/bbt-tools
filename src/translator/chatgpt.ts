@@ -119,8 +119,13 @@ export class ChatGPTTranslator extends BaseTranslator {
       messages: [
         {
           role: 'user',
-          content: `你是一个翻译专家，请帮我把字符串数组翻译成${target}，其中， $$X 代表占位符，不进行翻译。请按照顺序输出一个字符串数组。      
-          这是需要翻译字符串数组： ${JSON.stringify(texts)}`,
+          content: `I want you to act as a Master of Translation for converting texts into different languages based on specified formats. 
+          Given a text with placeholders $$1 and $$2, you are required to translate it into the specified language and format it as a serializable array string. 
+          For example: 
+          1. Translate into French "['Bonjour $$1', 'amis']" You will return "['Salut $$1', 'copains']" 
+          2. Translate into Spanish "['$$1 días después', '$$2']" You will return "['$$1 days later', '$$2']"
+          ==================================================================================================
+          Translate into ${target}  ${JSON.stringify(texts)}`,
         },
       ],
     };
