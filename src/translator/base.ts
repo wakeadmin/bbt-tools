@@ -168,6 +168,7 @@ export abstract class BaseTranslator extends TranslatorAdapter {
     if (this.interpolationReplaceMap.has(key)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const arr = this.interpolationReplaceMap.get(key)!;
+      this.interpolationReplaceMap.delete(key);
       return str.replace(this.reductionReg, (_, i) => arr[i]);
     } else {
       return str;
