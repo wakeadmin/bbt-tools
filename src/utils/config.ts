@@ -10,6 +10,14 @@ import { KeyTree } from './keyTree';
 import { IBBTValue } from './treeExcel';
 import { type BaseAction } from '../cli/baseAction';
 
+
+/**
+ * @param replaceFn 替换函数
+ * @param reg 自定义正则
+ */
+type MapFn = (replaceFn: (str: string) => string, reg?: RegExp) => void
+export type InterpolationMapFn = (fn: MapFn) => void;
+
 export interface IBBTProjectConfig {
   /**
    *  支持的语言列表
@@ -85,11 +93,35 @@ export interface IBBTProjectConfig {
       sourceLanguage: string
     ) => Observable<TranslatedList> | Promise<TranslatedList>;
 
+    /**
+     * 自定义插值替换
+     * 
+     * @remarks 
+     * 在一些情况下 默认的占位符会被翻译引擎解析成其他的文本 从而引起文本异常 比如
+     * 
+     * 德语   `$$1` --> `1$$`
+     * 
+     * 瓦瑞语 `$$1`--> `$$100`
+     * 
+     * 因此可以通过该插件进行自定义替换 从而避免这种问题
+     * 
+     * @example
+     * 
+     * class InterpolationMapPlugin {
+     *  interpolationMap(fn){
+     *    fn(str => {
+     *      return `@@${str}@@`
+     *    })
+     *  }
+     * }
+     */
+    interpolationMap: InterpolationMapFn;
+
     hooks?: {
-      "collect::completed"?: (tree:KeyTree<IBBTValue>, instance: BaseAction) => void;
-      "collect::before_diff"?: (tree:KeyTree<IBBTValue>, instance: BaseAction) => void;
-      "collect::after_diff"?: (tree:KeyTree<IBBTValue>, instance: BaseAction) => void;
-    }
+      'collect::completed'?: (tree: KeyTree<IBBTValue>, instance: BaseAction) => void;
+      'collect::before_diff'?: (tree: KeyTree<IBBTValue>, instance: BaseAction) => void;
+      'collect::after_diff'?: (tree: KeyTree<IBBTValue>, instance: BaseAction) => void;
+    };
   };
 }
 

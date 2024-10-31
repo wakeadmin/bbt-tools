@@ -118,3 +118,79 @@ describe('BaseTranslator', () => {
     });
   });
 });
+
+class TextInterpolationPlugin {
+  interpolationMap(fn: (replaceFn: (str: string) => string, reg?: RegExp) => void) {
+    let i = 0;
+    fn(() => {
+      return `##${i++}##`;
+    });
+  }
+}
+
+// @ts-expect-error
+class TestPluginTranslator extends BaseTranslator {
+  name = 'test';
+  override interpolationPlugin = (new TextInterpolationPlugin()).interpolationMap;
+
+  replace(key: string, text: string): string {
+    return super.replaceInterpolation(key, text);
+  }
+  reduction(key: string, text: string): string {
+    return super.reductionInterpolation(key, text);
+  }
+  translateTexts(texts: string[], target: string, sourceLanguage: string): Observable<string[]> {
+    throw new Error('');
+  }
+}
+
+describe('TestPluginTranslator', () => {
+  const testTranslator = new TestPluginTranslator();
+
+  test('插值替换测试', () => {
+    texts.forEach((text, i) => {
+      expect(testTranslator.replace(i as any, text!)).toBe(replaceTexts[i].replace(/\$\$(\d)/g, (_,$1) => `##${$1}##`));
+    });
+    replaceTexts.forEach((text, i) => {
+      expect(testTranslator.reduction(i as any, text!.replace(/\$\$(\d)/g, (_,$1) => `##${$1}##`))).toBe(texts[i]);
+    });
+  });
+
+  test('c端组件插值替换测试', () => {
+    const texts = [
+      [
+        '如谷之歌，<NiMI>。与风共存，< SSN >与种子越冬，与鸟歌颂。<89>',
+        '如谷之歌，##0##。与风共存，##1##与种子越冬，与鸟歌颂。##2##',
+      ],
+      ['快看，< WWWW1 >就像垃圾一样。<HHHH>', '快看，##0##就像垃圾一样。##1##'],
+      ['\\<SS>刚才还在担心<>，<ni)>你不会是天使吧\\ <T>', '\\<SS>刚才还在担心<>，<ni)>你不会是天使吧\\ ##0##'],
+    ];
+
+    texts.forEach(([a, b], i) => {
+      expect(testTranslator.replace(i as any, a)).toBe(b);
+      expect(testTranslator.reduction(i as any, b)).toBe(a);
+    });
+  });
+
+  test('时间插值替换测试', () => {
+    const texts = [
+      ['{xxx}', '##0##'],
+      ['{xxx, localizedDatetime}', '##0##'],
+      ['{xxx, localizedDatetime(format: LLL)}', '##0##'],
+      ['{xxx, localizedDatetime(format: YYYY年M月D日dddd HH:mm)}', '##0##'],
+      ['{xxx.xx, localizedDatetime(format: YYYY年M月D日dddd HH:mm)}SSS', '##0##SSS'],
+      ['{ xxx }', '##0##'],
+      ['{ xxx, localizedDatetime }', '##0##'],
+      ['{ xxx, localizedDatetime() }', '##0##'],
+      ['{ xxx, localizedDatetime(   )}', '##0##'],
+      ['{ xxx,localizedDatetime(format: LLL)}', '##0##'],
+      ['{  xxx,localizedDatetime(format: YYYY年M月D日dddd HH:mm)   }', '##0##'],
+      ['{xxx.xx, localizedDatetime(  format  :    YYYY年M月D日dddd HH:mm    )}SSS', '##0##SSS'],
+    ];
+
+    texts.forEach(([a, b], i) => {
+      expect(testTranslator.replace(i as any, a)).toBe(b);
+      expect(testTranslator.reduction(i as any, b)).toBe(a);
+    });
+  });
+});

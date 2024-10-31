@@ -1,3 +1,4 @@
+import { warn } from 'console';
 import { IBBTProjectConfig, safeRun } from '../utils';
 import { CheckNullValuePlugin } from './checkNullValue.plugin';
 import { RemoveNullValueKeyPlugin } from './removeNullValue.plugin';
@@ -15,6 +16,14 @@ class Plugins {
     this.list.push(plugin);
 
     return () => this.list.filter(p => p === plugin);
+  }
+
+  get<T extends keyof Plugin>(name: Exclude<T, 'hooks'>): Plugin | undefined {
+    const plugins = this.list.filter(plugin => !!plugin[name]);
+    if (plugins.length > 1) {
+      warn(`存在多个含有 ${name} 功能的插件`);
+    }
+    return plugins[0];
   }
 
   runHooks<T extends HookNames>(name: T, ...args: HookParameters<T>): void {

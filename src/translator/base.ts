@@ -1,4 +1,5 @@
 import { createWriteStream, WriteStream } from 'fs-extra';
+import path from 'path';
 import {
   bufferCount,
   catchError,
@@ -13,7 +14,8 @@ import {
   retry,
   timer,
 } from 'rxjs';
-import path from 'path';
+import { BBTPlugins } from '../plugins';
+import { InterpolationMapFn } from '../utils';
 
 export interface ITranslator {
   /**
@@ -47,7 +49,7 @@ export abstract class TranslatorAdapter implements ITranslator {
 /**
  * 处理插值表达式的正则
  */
-const RegList = [
+export const InterpolationRegList = [
   /**
    * 匹配以下字符
    * {axx.xx}
@@ -62,6 +64,17 @@ const RegList = [
   /(?<!\\)<\s*[a-zA-Z0-9]+\s*>/g /** <0> 或者 <xxxx>  */,
 ];
 
+function getInterpolationReplaceMap(): InterpolationMapFn {
+  const plugin = BBTPlugins.get('interpolationMap');
+  if (plugin) {
+    return plugin.interpolationMap!;
+  }
+  return fn => {
+    let i = 0;
+    fn(() => `$$${i++}`);
+  };
+}
+
 export abstract class BaseTranslator extends TranslatorAdapter {
   protected concurrent = 6;
   protected delayTime = 332;
@@ -70,9 +83,11 @@ export abstract class BaseTranslator extends TranslatorAdapter {
    */
   protected bufferCount = 50;
 
+  private interpolationPlugin = getInterpolationReplaceMap();
+
   private interpolationReplaceMap: Map<string, string[]> = new Map();
 
-  private readonly replaceReg = new RegExp(RegList.map(reg => reg.source).join('|'), 'g');
+  private readonly replaceReg = new RegExp(InterpolationRegList.map(reg => reg.source).join('|'), 'g');
 
   private readonly reductionReg = /\$\$(\d+)/g;
   protected logStream?: WriteStream;
@@ -145,11 +160,15 @@ export abstract class BaseTranslator extends TranslatorAdapter {
       return '';
     }
     const arr: string[] = [];
-    let i = 0;
-    const result = str.replace(this.replaceReg, replaceValue => {
-      const val = `$$${i++}`;
-      arr.push(replaceValue);
-      return val;
+    let result = str;
+    this.interpolationPlugin((replaceFn, reg) => {
+      result = result.replace(reg || this.replaceReg, replaceValue => {
+        const val = replaceFn(replaceValue);
+        arr.push(replaceValue);
+        arr.push(val);
+        console.log(replaceValue, val);
+        return val;
+      });
     });
 
     if (arr.length > 0) {
@@ -168,7 +187,11 @@ export abstract class BaseTranslator extends TranslatorAdapter {
     if (this.interpolationReplaceMap.has(key)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const arr = this.interpolationReplaceMap.get(key)!;
-      return str.replace(this.reductionReg, (_, i) => arr[i]);
+      let result = str;
+      for (let i = 0; i < arr.length; i += 2) {
+        result = result.replace(arr[i + 1], arr[i]);
+      }
+      return result;
     } else {
       return str;
     }
