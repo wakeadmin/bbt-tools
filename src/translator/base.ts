@@ -163,10 +163,11 @@ export abstract class BaseTranslator extends TranslatorAdapter {
     let result = str;
     this.interpolationPlugin((replaceFn, reg) => {
       result = result.replace(reg || this.replaceReg, replaceValue => {
+        
         const val = replaceFn(replaceValue);
         arr.push(replaceValue);
         arr.push(val);
-        console.log(replaceValue, val);
+
         return val;
       });
     });
