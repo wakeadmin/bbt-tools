@@ -1,5 +1,20 @@
 # @wakeadmin/bbt
 
+## 0.3.1
+
+### Patch Changes
+
+- feat : 现在每次翻译完成之后会删除对应的占位符缓存 [d97d2ea](https://github.com/wakeadmin/bbt-tools/commit/d97d2eabd0822680c51938a389ff9ff93a92f56d)
+
+
+## 0.3.0
+
+### Minor Changes
+
+- feat : 调增 chatgpt 的 promat
+- feat : 新增 interpolationMap
+
+
 ## 0.2.2
 
 ### Patch Changes
