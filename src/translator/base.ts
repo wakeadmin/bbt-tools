@@ -94,11 +94,15 @@ export abstract class BaseTranslator extends TranslatorAdapter {
 
   abstract get name(): string;
 
+  getKey(key: string, target: string) {
+    return `__${target}__${key}__`
+  }
+
   translate(record: Record<string, string>, target: string, sourceLanguage: string): Observable<TranslatedList> {
     return from(Object.entries(record)).pipe(
       filter(([_, value]) => !!value),
       map(([key, value]) => {
-        const str = this.replaceInterpolation(key, value);
+        const str = this.replaceInterpolation(this.getKey(key, target), value);
         return [key, str];
       }),
 
@@ -139,7 +143,7 @@ export abstract class BaseTranslator extends TranslatorAdapter {
           map(list =>
             list.map((text, i) => {
               const key = keys[i];
-              return { target, translatedText: this.reductionInterpolation(key, text), key };
+              return { target, translatedText: this.reductionInterpolation(this.getKey(key, target), text), key };
             })
           )
         );
