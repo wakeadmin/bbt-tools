@@ -95,7 +95,7 @@ export abstract class BaseTranslator extends TranslatorAdapter {
   abstract get name(): string;
 
   getKey(key: string, target: string) {
-    return `__${target}__${key}__`
+    return `__${target}__${key}__`;
   }
 
   translate(record: Record<string, string>, target: string, sourceLanguage: string): Observable<TranslatedList> {
@@ -167,7 +167,6 @@ export abstract class BaseTranslator extends TranslatorAdapter {
     let result = str;
     this.interpolationPlugin((replaceFn, reg) => {
       result = result.replace(reg || this.replaceReg, replaceValue => {
-
         const val = replaceFn(replaceValue);
         arr.push(replaceValue);
         arr.push(val);
@@ -194,8 +193,8 @@ export abstract class BaseTranslator extends TranslatorAdapter {
       const arr = this.interpolationReplaceMap.get(key)!;
       this.interpolationReplaceMap.delete(key);
       let result = str;
-      for (let i = 0; i < arr.length; i += 2) {
-        result = result.replace(arr[i + 1], arr[i]);
+      for (let i = arr.length - 1; i > 0; i -= 2) {
+        result = result.replace(arr[i], arr[i - 1]);
       }
       return result;
     } else {
